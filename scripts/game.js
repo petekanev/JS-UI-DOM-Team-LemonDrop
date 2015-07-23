@@ -2,23 +2,36 @@ window.onLoad = function() {
 	//useful game. functions -
 	//onBlur, onPause, onResume, onFocus, paused (boolean property), 
 
+	//useful Body. functions -
+	//bottom (same as Body.y + Body.height)
+	//right (same as Body.x + Body.width)
+	//hitTest(x, y) (Boolean) - may help to prevent player placing box on top of character
+	//onFloor() (Boolean) - tests if character collides with another solid object underneath
+	//onWall()
+
 	// generates either a WebGL or Canvas, depending on client
 	var game = new Phaser.Game(1024, 512, Phaser.AUTO, 'ConjurerGame'),
-	player,
-	playerAirborne = false,
-	coinsCollected = 0,
-	hasKey = false,
-	timeElapsed = 0,
-	placedCrates = 0,
-	deads = 0,
-	tileSize = 32,
-	cratePos = null,
-	level1Map,
-	level2Map,
-	level3Map,
-	levelMap,
-	levelLayer,
-	controller;
+		player,
+		playerAirborne = false,
+		playerState = 'right',
+		playerSpeed,
+		coinsCollected = 0,
+		hasKey = false,
+		timeElapsed = 0,
+		placedCrates = 0,
+		deads = 0,
+		tileSize = 32,
+		cratePos = null,
+		level1Map,
+		level2Map,
+		level3Map,
+		levelMap,
+		levelLayer,
+		controller;
+
+
+	var lightSprite,
+		shadowTexture;
 
 	var ConjurerGame = function(game){};
 
@@ -29,6 +42,8 @@ window.onLoad = function() {
 	};
 
 	function preload() {
+		//add a background image
+
 		game.load.tilemap('level1', 'sample.json', null, Phaser.Tilemap.TILED_JSON);
 		// game.load.tilemap('level2', 'levels\\level2map.json', null, Phaser.Tilemap.TILED_JSON);
 		// game.load.tilemap('level3', 'levels\\level3map.json', null, Phaser.Tilemap.TILED_JSON);
@@ -74,18 +89,18 @@ window.onLoad = function() {
 		// levelMap.setCollisionByExclusion(indexes(ids/numbers in the tilemap) to not collide),
 		// false);
 
-levelLayer = levelMap.createLayer('myLevel1');
-console.log(levelLayer);
+		levelLayer = levelMap.createLayer('myLevel1');
+		console.log(levelLayer);
 
-player = game.add.sprite(80, 464, 'testPlayer');
+		player = game.add.sprite(80, 464, 'testPlayer');
 		// sets the anchor of the player object to the middle of the picture
 		player.anchor.setTo(0.5, 0.5);
 		// sets player gravity and allows collision with other objects
 		game.physics.enable(player, Phaser.Physics.ARCADE);
 		// sets gravity in the vertical context
 		player.body.gravity.y = 500;
-		player.speed = 100;
-		player.facing = 'right';
+		playerSpeed = 100;
+		playerState = 'right';
 
 		// parameters are placeholder values until a spritesheet is made
 		player.animations.add('left', [], 1, true);
@@ -94,18 +109,53 @@ player = game.add.sprite(80, 464, 'testPlayer');
 		// waits for input, either touch or mouse click to call provided method
 		// adds an onDown event to be referred to later on
 		game.input.onDown.add(placeCrate, this);
+
+		// character emits light to reveal the map
+		shadowTexture = game.add.bitmapData(game.width, game.height);
+		lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture)
+
+		lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
 	}
 
 	function update() {
 		// move player
 		// perform checks whether the player can jump
-		   // setting player x speed to zero
-		   player.body.velocity.x = 0;
-           // check for collision between the player and the level, and call "movePlayer" if there's a collision
-           game.physics.arcade.collide(player, levelLayer, move);
-       }
+		// setting player x speed to zero
+		player.body.velocity.x = 0;
+		// check for collision between the player and the level, and call "movePlayer" if there's a collision
+		game.physics.arcade.collide(player, levelLayer, move);
 
-       function placeCrate(pos) {
+		// character emits light to reveal the map
+		lightSprite.reset(game.camera.x, game.camera.y);
+		updateShadowTexture();
+	}
+
+	function updateShadowTexture() {
+		// Draw shadow
+		shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
+		shadowTexture.context.fillRect(0, 0, game.width, game.height);
+
+		var radius = 250 + game.rnd.integerInRange(1,10),
+			heroX = player.x - game.camera.x,
+			heroY = player.y - game.camera.y;
+
+		// Draw circle of light with a soft edge
+		var gradient = shadowTexture.context.createRadialGradient(
+			heroX, heroY, 100 * 0.75,
+			heroX, heroY, radius);
+		gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+		gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+		shadowTexture.context.beginPath();
+		shadowTexture.context.fillStyle = gradient;
+		shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI*2, false);
+		shadowTexture.context.fill();
+
+		// This just tells the engine it should update the texture cache
+		shadowTexture.dirty = true;
+	}
+
+	function placeCrate(pos) {
 		// performs check whether placement at a position is possible
 		// check whether crate is placed anywhere on top of the player
 		// updates sprite
@@ -113,83 +163,88 @@ player = game.add.sprite(80, 464, 'testPlayer');
 		// remove old crate if one already exists
 		// updates sprite, walking resumes
 
-		var velocityX = player.speed,
-		facingState = player.facing;
+		var velocityX = playerSpeed,
+			facingState = player.facing;
 
-		player.speed = 0;
-		player.facing = 'cast';
+		playerSpeed = 0;
+		playerState = 'cast';
 
-      // performs checks for diagonally adjascent tiles and tiles directly above the player
-      if (!levelMap.getTileWorldXY(pos.x, pos.y, tileSize, tileSize, levelLayer)) {
-               // is there already a tile placed by the player?
-               if (cratePos){
-                    // remove the tile placed by the player
-                    levelMap.removeTileWorldXY(cratePos.x, cratePos.y, tileSize, tileSize, levelLayer);	
-                }
-               // place the tile on mouse/touch position
-               levelMap.putTileWorldXY(2, pos.x, pos.y, tileSize, tileSize, levelLayer);
-               // save placed tile position
-               cratePos = new Phaser.Point(pos.x,pos.y); 		
-           }
+		// performs checks for diagonally adjascent tiles and tiles directly above the player
+		if (!levelMap.getTileWorldXY(pos.x, pos.y, tileSize, tileSize, levelLayer)) {
+			// is there already a tile placed by the player?
+			if (cratePos){
+				// remove the tile placed by the player
+				levelMap.removeTileWorldXY(cratePos.x, cratePos.y, tileSize, tileSize, levelLayer);
+			}
+			// place the tile on mouse/touch position
+			levelMap.putTileWorldXY(2, pos.x, pos.y, tileSize, tileSize, levelLayer);
+			// save placed tile position
+			cratePos = new Phaser.Point(pos.x,pos.y);
+		}
 
-       setTimeout(function() {
-       	player.speed = velocityX;
-       	player.facing = facingState;
-       }, 500);
+		setTimeout(function() {
+			playerSpeed = velocityX;
+			playerState = facingState;
+		}, 500);
 
-   }
+	}
 
-   function move() {
+	function move() {
 		// walks automatically (or until a button is pressed to resume)
 		// alternative: walks using the left and right arrows
 		// changes direction on collision
 		// updates sprite when necessary
 
-  		// is the player blocked down, that is: is the player on the floor?
-  		if (player.body.blocked.down){
-               // set player horizontal velocity
-               player.body.velocity.x = player.speed;
-               // the player is definitively not jumping
-               playerAirborne = false;
-           }
-          // is player speed greater than zero and the player is blocked right, that is the player is against a wall on the right?
-          if (player.body.blocked.right && player.speed > 0){
-               // is the tile on player upper right diagonal empty, as well as the tile immediately above the player, or is the player already jumping?
-               if ((!levelMap.getTileWorldXY(player.x + tileSize,player.y - tileSize, tileSize, tileSize, levelLayer) && 
-               	!levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer)) || playerAirborne) {
-                    // jump
-                jump();
-            }
-            else {
-                    // invert player speed
-                    player.speed *= -1;
-                }
-            }
-          // the same concept is applied to collisions on the left side of the player
-          if (player.body.blocked.left && player.speed < 0){
-          	if ((!levelMap.getTileWorldXY(player.x - tileSize, player.y - tileSize, tileSize, tileSize, levelLayer) && 
-          		!levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer)) || playerAirborne) {
-          		jump();
-          }
-          else {
-          	player.speed *= -1;
-          }
-      }
-  }
+		// is the player blocked down, that is: is the player on the floor?
+		if (player.body.blocked.down){
+			// set player horizontal velocity
+			player.body.velocity.x = playerSpeed;
+			// the player is definitively not jumping
+			playerAirborne = false;
+		}
+		if (player.body.blocked.right && playerSpeed > 0) {
+			// is the tile on player upper right diagonal empty, as well as the tile immediately above the player, or is the player already jumping?
+			if ((!levelMap.getTileWorldXY(player.x + tileSize,player.y - tileSize, tileSize, tileSize, levelLayer) &&
+				!levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer)) || playerAirborne) {
+				// jump
+				jump();
+			}
+			else {
+				// invert player speed
+				playerSpeed *= -1;
+			}
+		}
+		// the same concept is applied to collisions on the left side of the player
+		if (player.body.blocked.left && playerSpeed < 0) {
+			if ((!levelMap.getTileWorldXY(player.x - tileSize, player.y - tileSize, tileSize, tileSize, levelLayer) &&
+				!levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer)) || playerAirborne) {
+				jump();
+			}
+			else {
+				playerSpeed *= -1;
+			}
+		}
+	}
 
-  function jump() {
+	function jump() {
 		// ..
 
-  		// setting player vertical velocity        
-  		player.body.velocity.x = player.speed / 4;
+		// setting player vertical velocity
 
-  		player.body.velocity.y = -100;
-  		playerAirborne = true;		
-  	}
+		player.body.velocity.y = -100;
 
-  	function collect() {
+		player.body.velocity.x = playerSpeed/2;
+		playerAirborne = true;
+	}
+
+	function collect() {
 		// collects coins and keys
 		// updates info
+	}
+
+	function initLevel() {
+		// loads initial data for the level, everything sans resetting statistics
+
 	}
 
 	game.state.add('ConjurerGame', ConjurerGame);
