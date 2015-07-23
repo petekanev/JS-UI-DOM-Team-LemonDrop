@@ -15,6 +15,7 @@ window.onLoad = function() {
 		playerAirborne = false,
 		playerState = 'right',
 		playerSpeed,
+		constPlayerSpeed,
 		coinsCollected = 0,
 		hasKey = false,
 		timeElapsed = 0,
@@ -22,6 +23,10 @@ window.onLoad = function() {
 		deads = 0,
 		tileSize = 32,
 		cratePos = null,
+		tileUnderPlayer,
+		tileAbovePlayer,
+		tileRightDiagonalToPlayer,
+		tileLeftDiagonalToPlayer,
 		level1Map,
 		level2Map,
 		level3Map,
@@ -38,7 +43,10 @@ window.onLoad = function() {
 	ConjurerGame.prototype = {
 		preload: preload,
 		create: create,
-		update: update
+		update: update,
+		onLeft: function() {
+			playerSpeed = 20;
+		}
 	};
 
 	function preload() {
@@ -82,6 +90,8 @@ window.onLoad = function() {
 		// adds collision (objects are solid) to all objects with '1' in the tilemap array
 		levelMap.setCollisionBetween(1, 3);
 
+		controller = game.input.keyboard.createCursorKeys();
+
 		// removes collision from objects which are meant to be operated with (coins, keys),
 		// indexes(numbers) are provided in the array or as a number
 		// levelMap.setCollision([], false);
@@ -108,7 +118,7 @@ window.onLoad = function() {
 		player.animations.add('right', [], 1, true);
 		// waits for input, either touch or mouse click to call provided method
 		// adds an onDown event to be referred to later on
-		game.input.onDown.add(placeCrate, this);
+		game.input.onUp.add(placeCrate, this);
 
 		// character emits light to reveal the map
 		shadowTexture = game.add.bitmapData(game.width, game.height);
@@ -166,9 +176,6 @@ window.onLoad = function() {
 		var velocityX = playerSpeed,
 			facingState = player.facing;
 
-		playerSpeed = 0;
-		playerState = 'cast';
-
 		// performs checks for diagonally adjascent tiles and tiles directly above the player
 		if (!levelMap.getTileWorldXY(pos.x, pos.y, tileSize, tileSize, levelLayer)) {
 			// is there already a tile placed by the player?
@@ -180,12 +187,16 @@ window.onLoad = function() {
 			levelMap.putTileWorldXY(2, pos.x, pos.y, tileSize, tileSize, levelLayer);
 			// save placed tile position
 			cratePos = new Phaser.Point(pos.x,pos.y);
-		}
 
-		setTimeout(function() {
+
+		playerSpeed = 0;
+		playerState = 'cast';
+
+			setTimeout(function() {
 			playerSpeed = velocityX;
 			playerState = facingState;
 		}, 500);
+		}
 
 	}
 
@@ -195,7 +206,23 @@ window.onLoad = function() {
 		// changes direction on collision
 		// updates sprite when necessary
 
+		tileUnderPlayer = levelMap.getTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
+		tileAbovePlayer = levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer);
+		tileRightDiagonalToPlayer = levelMap.getTileWorldXY(player.x + tileSize,player.y - tileSize, tileSize, tileSize, levelLayer);
+		tileLeftDiagonalToPlayer = levelMap.getTileWorldXY(player.x - tileSize, player.y - tileSize, tileSize, tileSize, levelLayer);
 		// is the player blocked down, that is: is the player on the floor?
+		if (controller.down.isDown) {
+			playerSpeed = 0;
+		}
+
+		if (controller.left.isDown) {
+			playerSpeed = -120;
+		}
+
+		if (controller.right.isDown) {
+			playerSpeed = 120;
+		}
+
 		if (player.body.blocked.down){
 			// set player horizontal velocity
 			player.body.velocity.x = playerSpeed;
@@ -204,8 +231,8 @@ window.onLoad = function() {
 		}
 		if (player.body.blocked.right && playerSpeed > 0) {
 			// is the tile on player upper right diagonal empty, as well as the tile immediately above the player, or is the player already jumping?
-			if ((!levelMap.getTileWorldXY(player.x + tileSize,player.y - tileSize, tileSize, tileSize, levelLayer) &&
-				!levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer)) || playerAirborne) {
+			if ((!tileRightDiagonalToPlayer &&
+				!tileAbovePlayer) || playerAirborne) {
 				// jump
 				jump();
 			}
@@ -216,13 +243,35 @@ window.onLoad = function() {
 		}
 		// the same concept is applied to collisions on the left side of the player
 		if (player.body.blocked.left && playerSpeed < 0) {
-			if ((!levelMap.getTileWorldXY(player.x - tileSize, player.y - tileSize, tileSize, tileSize, levelLayer) &&
-				!levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer)) || playerAirborne) {
+			if ((!tileLeftDiagonalToPlayer &&
+				!tileAbovePlayer) || playerAirborne) {
 				jump();
 			}
 			else {
 				playerSpeed *= -1;
 			}
+		}
+
+		if (tileUnderPlayer !== null) {
+			collect();
+
+			if (hasKey) {
+				enterDoor();	
+			}
+		}
+
+		updateSprite();
+	}
+
+	function updateSprite() {
+		if (playerState === 'cast') {
+			return;
+		}
+		if (playerSpeed < 0) {
+
+		}
+		else if (playerSpeed > 0) {
+
 		}
 	}
 
@@ -239,8 +288,25 @@ window.onLoad = function() {
 
 	function collect() {
 		// collects coins and keys
-		// updates info
+
+		if (tileUnderPlayer.index === 4) {
+			coinsCollected += 1;
+			levelMap.removeTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
+		}
+		if (tileUnderPlayer.index === 5) {
+			hasKey = true;
+			levelMap.removeTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
+		}
 	}
+
+	function enterDoor () {
+		if (tileUnderPlayer.index === 6) {
+			game.paused = true;
+		}
+	}
+
+
+
 
 	function initLevel() {
 		// loads initial data for the level, everything sans resetting statistics
