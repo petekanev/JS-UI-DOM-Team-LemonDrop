@@ -230,21 +230,26 @@ window.onLoad = function() {
 			playerAirborne = false;
 		}
 		if (player.body.blocked.right && playerSpeed > 0) {
-			// is the tile on player upper right diagonal empty, as well as the tile immediately above the player, or is the player already jumping?
-			if ((!tileRightDiagonalToPlayer &&
-				!tileAbovePlayer) || playerAirborne) {
+			// performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
+			if ((tileAbovePlayer && 
+				(tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) || 
+				(tileRightDiagonalToPlayer && 
+				(tileRightDiagonalToPlayer.index === 4 || tileRightDiagonalToPlayer.index === 5)) ||
+				(!tileRightDiagonalToPlayer && !tileAbovePlayer) || playerAirborne) {
 				// jump
 				jump();
 			}
 			else {
-				// invert player speed
 				playerSpeed *= -1;
 			}
 		}
-		// the same concept is applied to collisions on the left side of the player
 		if (player.body.blocked.left && playerSpeed < 0) {
-			if ((!tileLeftDiagonalToPlayer &&
-				!tileAbovePlayer) || playerAirborne) {
+			// performs checks just as above but instead for the left diagonal
+			if ((tileAbovePlayer && 
+				(tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) || 
+				(tileLeftDiagonalToPlayer && 
+				(tileLeftDiagonalToPlayer.index === 4 || tileLeftDiagonalToPlayer.index === 5)) ||
+				(!tileLeftDiagonalToPlayer && !tileAbovePlayer) || playerAirborne) {
 				jump();
 			}
 			else {
