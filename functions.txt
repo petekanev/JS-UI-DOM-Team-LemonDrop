@@ -1,0 +1,27 @@
+function updateSprite() {
+		// ..
+		switch(playerState) {
+			case 'left':
+				if (playerSpeed === 0) {
+					player.animations.play('leftIdle');
+				}
+				else {
+					player.animations.play('left');
+				} 
+				break;
+			case 'right':
+				if (playerSpeed === 0) {
+					player.animations.play('rightIdle');
+				}
+				else {
+					player.animations.play('right');
+				}
+				break;
+			case 'cast':
+				player.animations.play('cast');
+				break;
+		}
+	}
+
+-----------------------------
+

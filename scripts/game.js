@@ -15,7 +15,7 @@ window.onLoad = function() {
 		playerAirborne = false,
 		playerState = 'right',
 		playerSpeed,
-		constPlayerSpeed,
+		SPEED = 100,
 		coinsCollected = 0,
 		hasKey = false,
 		timeElapsed = 0,
@@ -52,7 +52,7 @@ window.onLoad = function() {
 	function preload() {
 		//add a background image
 
-		game.load.tilemap('level1', 'sample.json', null, Phaser.Tilemap.TILED_JSON);
+		game.load.tilemap('level1', 'level2.json', null, Phaser.Tilemap.TILED_JSON);
 		// game.load.tilemap('level2', 'levels\\level2map.json', null, Phaser.Tilemap.TILED_JSON);
 		// game.load.tilemap('level3', 'levels\\level3map.json', null, Phaser.Tilemap.TILED_JSON);
 		game.load.image('wall', 'assets\\images\\wall.png');
@@ -109,7 +109,7 @@ window.onLoad = function() {
 		game.physics.enable(player, Phaser.Physics.ARCADE);
 		// sets gravity in the vertical context
 		player.body.gravity.y = 500;
-		playerSpeed = 100;
+		playerSpeed = SPEED;
 		playerState = 'right';
 
 		// parameters are placeholder values until a spritesheet is made
@@ -153,8 +153,8 @@ window.onLoad = function() {
 		var gradient = shadowTexture.context.createRadialGradient(
 			heroX, heroY, 100 * 0.75,
 			heroX, heroY, radius);
-		gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-		gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+		gradient.addColorStop(0, 'rgba(255, 255, 220, 1.0)');
+		gradient.addColorStop(1, 'rgba(255, 255, 30, 0.0)');
 
 		shadowTexture.context.beginPath();
 		shadowTexture.context.fillStyle = gradient;
@@ -177,7 +177,7 @@ window.onLoad = function() {
 			facingState = player.facing;
 
 		// performs checks for diagonally adjascent tiles and tiles directly above the player
-		if (!levelMap.getTileWorldXY(pos.x, pos.y, tileSize, tileSize, levelLayer)) {
+		if (!levelMap.getTileWorldXY(pos.x, pos.y, tileSize, tileSize, levelLayer) && !player.body.hitTest(pos.x, pos.y)) {
 			// is there already a tile placed by the player?
 			if (cratePos){
 				// remove the tile placed by the player
@@ -216,11 +216,11 @@ window.onLoad = function() {
 		}
 
 		if (controller.left.isDown) {
-			playerSpeed = -120;
+			playerSpeed = -SPEED;
 		}
 
 		if (controller.right.isDown) {
-			playerSpeed = 120;
+			playerSpeed = SPEED;
 		}
 
 		if (player.body.blocked.down){
@@ -231,11 +231,10 @@ window.onLoad = function() {
 		}
 		if (player.body.blocked.right && playerSpeed > 0) {
 			// performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
-			if ((tileAbovePlayer && 
-				(tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) || 
-				(tileRightDiagonalToPlayer && 
-				(tileRightDiagonalToPlayer.index === 4 || tileRightDiagonalToPlayer.index === 5)) ||
-				(!tileRightDiagonalToPlayer && !tileAbovePlayer) || playerAirborne) {
+			if ((!tileRightDiagonalToPlayer && !tileAbovePlayer) || 
+				(tileAbovePlayer && (tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) || 
+				(tileRightDiagonalToPlayer && (tileRightDiagonalToPlayer.index === 4 || tileRightDiagonalToPlayer.index === 5)) || 
+				playerAirborne) {
 				// jump
 				jump();
 			}
@@ -245,11 +244,10 @@ window.onLoad = function() {
 		}
 		if (player.body.blocked.left && playerSpeed < 0) {
 			// performs checks just as above but instead for the left diagonal
-			if ((tileAbovePlayer && 
-				(tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) || 
-				(tileLeftDiagonalToPlayer && 
-				(tileLeftDiagonalToPlayer.index === 4 || tileLeftDiagonalToPlayer.index === 5)) ||
-				(!tileLeftDiagonalToPlayer && !tileAbovePlayer) || playerAirborne) {
+			if ((!tileLeftDiagonalToPlayer && !tileAbovePlayer) || 
+				(tileAbovePlayer && (tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) || 
+				(tileLeftDiagonalToPlayer && (tileLeftDiagonalToPlayer.index === 4 || tileLeftDiagonalToPlayer.index === 5)) || 
+				playerAirborne) {
 				jump();
 			}
 			else {
@@ -269,15 +267,7 @@ window.onLoad = function() {
 	}
 
 	function updateSprite() {
-		if (playerState === 'cast') {
-			return;
-		}
-		if (playerSpeed < 0) {
-
-		}
-		else if (playerSpeed > 0) {
-
-		}
+		// ..
 	}
 
 	function jump() {
