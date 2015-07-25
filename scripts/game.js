@@ -1,74 +1,57 @@
-window.onLoad = function () {
-    //useful game. functions -
-    //onBlur, onPause, onResume, onFocus, paused (boolean property),
+//window.onLoad = ConjurerGame;
 
-    //useful Body. functions -
-    //bottom (same as Body.y + Body.height)
-    //right (same as Body.x + Body.width)
-    //hitTest(x, y) (Boolean) - may help to prevent player placing box on top of character
-    //onFloor() (Boolean) - tests if character collides with another solid object underneath
-    //onWall()
+var CONSTANTS = {
+    SPEED: 100,
+    TILE_SIZE : 32,
+    GAME_WIDTH: 1024,
+    GAME_HEIGHT: 512
+};
 
-    // generates either a WebGL or Canvas, depending on client
-    var game = new Phaser.Game(1024, 512, Phaser.AUTO, 'ConjurerGame'),
-        player,
+var ConjurerGame = (function () {
+    var player,
         playerAirborne = false,
-        playerState = 'right',
-        playerSpeed,
-        SPEED = 100,
-        coinsCollected = 0,
+        playerState,
+        playerSpeed =100,
+        placedCrates = 0;
+
+    var coinsCollected = 0,
         hasKey = false,
         timeElapsed = 0,
-        placedCrates = 0,
-        deads = 0,
-        tileSize = 32,
-        cratePos = null,
-        tileUnderPlayer,
-        tileAbovePlayer,
-        tileBelowPlayer,
-        tileRightDiagonalToPlayer,
-        tileLeftDiagonalToPlayer,
-        level1Map,
-        level2Map,
-        level3Map,
-        levelMap,
-        levelLayer,
-        controller;
+        deads = 0;
 
+    var levelMap,
+        levelLayer;
+
+    var controller;
 
     var lightSprite,
         shadowTexture;
 
-    var ConjurerGame = function (game) {
-    };
+    var game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame');   
+    var ConjurerGame = function (game) {};
 
     ConjurerGame.prototype = {
         preload: preload,
         create: create,
-        update: update,
-        onLeft: function () {
-            playerSpeed = 20;
-        }
+        update: update
     };
 
     function preload() {
-        //add a background image
+        //??add a background image???
 
-        game.load.tilemap('level1', 'level2.json', null, Phaser.Tilemap.TILED_JSON);
-        // game.load.tilemap('level2', 'levels\\level2map.json', null, Phaser.Tilemap.TILED_JSON);
-        // game.load.tilemap('level3', 'levels\\level3map.json', null, Phaser.Tilemap.TILED_JSON);
-        game.load.image('wall', 'assets\\images\\wall.png');
-        game.load.image('crate', 'assets\\images\\crate.png');
-        game.load.image('coin', 'assets\\images\\coin.png');
-        game.load.image('key', 'assets\\images\\key.png');
-        game.load.image('door', 'assets\\images\\door.png');
-        game.load.image('spikes', 'assets\\images\\spikes.png');
+        // Loads game board elements - tilrmap and images
+        this.load.tilemap('level1', 'level2.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.image('wall', 'assets\\images\\wall.png');
+        this.load.image('crate', 'assets\\images\\crate.png');
+        this.load.image('coin', 'assets\\images\\coin.png');
+        this.load.image('key', 'assets\\images\\key.png');
+        this.load.image('door', 'assets\\images\\door.png');
+        this.load.image('spikes', 'assets\\images\\spikes.png');
 
-        // preloads the player spritesheet with key 'player', width 24, height 32, -1 as
+        // preloads the player spritesheet with key 'player', width 30, height 32, -1 as
         // as the following parameter means that we allow the engine to decide the amount
         // of frames the spritesheet contains; 5px by 5px is the spacing and margin between frames
-        //game.load.image('testPlayer', 'assets\\images\\testPlayer.png');
-        game.load.spritesheet('player', 'assets/sprites/player.png', 30, 32);
+        this.load.spritesheet('player', 'assets/sprites/player.png', 30, 32);
 
         // audio to be loaded for different events within the game
         // game.load.audio('coinCollect', 'assets\\sounds\\coin.mp3');
@@ -77,158 +60,103 @@ window.onLoad = function () {
     }
 
     function create() {
-        // place doors, coins, keys, set collision
-        // reset statistics
+        // ???? reset statistics ????
 
-        //initiates arcade physics (objects can collide)
-        game.physics.startSystem(Phaser.Physics.ARCADE);
-        levelMap = game.add.tilemap('level1');
-        levelMap.addTilesetImage('wall');
-        levelMap.addTilesetImage('crate');
-        levelMap.addTilesetImage('spikes');
-        levelMap.addTilesetImage('coin');
-        levelMap.addTilesetImage('key');
-        levelMap.addTilesetImage('door');
-        // adds collision (objects are solid) to all objects with '1' in the tilemap array
-        levelMap.setCollisionBetween(1, 2);
+        // Initiates arcade physics (objects can collide)
+        this.physics.startSystem(Phaser.Physics.ARCADE);
 
-        controller = game.input.keyboard.createCursorKeys();
-
-        // removes collision from objects which are meant to be operated with (coins, keys),
-        // indexes(numbers) are provided in the array or as a number
-        // levelMap.setCollision([], false);
-        // alternative:
-        // levelMap.setCollisionByExclusion(indexes(ids/numbers in the tilemap) to not collide),
-        // false);
-
+        // Creates the tilemap and the objects on the map using the loaded sources
+        levelMap = createLevelMap(this);
+        // Defines current level layer
         levelLayer = levelMap.createLayer('myLevel1');
-        console.log(levelLayer);
+        levelLayer.cratePos = null;
 
-        //player = game.add.sprite(80, 464, 'testPlayer');
-        player = game.add.sprite(80, 464, 'player');
-        // sets the anchor of the player object to the middle of the picture
-        player.anchor.setTo(0.5, 0.5);
-        // sets player gravity and allows collision with other objects
-        game.physics.enable(player, Phaser.Physics.ARCADE);
-        // sets gravity in the vertical context
-        player.body.gravity.y = 500;
-        playerSpeed = SPEED;
-        playerState = 'right';
+        // Adds a key input controllerto the game
+        controller = this.input.keyboard.createCursorKeys();
 
-        // parameters are placeholder values until a spritesheet is made
-        player.animations.add('left', [0, 1, 2], 10, true);
-        player.animations.add('right', [4, 5, 6], 10, true);
-        //player.animations.add('left', [], 1, true);
-        player.animations.add('cast', [3], 1, true);
+        // Creates player
+        player = createPlayer(this);
+
         //player.animations.add('right', [], 1, true);
         // waits for input, either touch or mouse click to call provided method
         // adds an onDown event to be referred to later on
-        game.input.onUp.add(placeCrate, this);
+        this.input.onUp.add(placeCrate, this);
 
-        // character emits light to reveal the map
-        shadowTexture = game.add.bitmapData(game.width, game.height);
-        lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture);
-
+        // Character emits light to reveal the map ???? Check how to extract it in a method!!!
+        shadowTexture = this.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
+        lightSprite = this.add.image(this.camera.x, this.camera.y, shadowTexture);
         lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
     }
 
     function update() {
-        // move player
-        // perform checks whether the player can jump
-        // setting player x speed to zero
+        var tileUnderPlayer;
         player.body.velocity.x = 0;
+
         // check for collision between the player and the level, and call "movePlayer" if there's a collision
-        tileUnderPlayer = levelMap.getTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
+        tileUnderPlayer = levelMap.getTileWorldXY(player.x, player.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+
         if (tileUnderPlayer !== null) {
-            collect();
-            console.log('Check');
-            if (tileUnderPlayer.index === 2){
-                // Kill the magician!
-                game.paused = true;
-            }
-            if (hasKey) {
-                enterDoor();
+            switch (tileUnderPlayer.index) {
+                case 2: 
+                case 3: killPlayer(game);
+                    break;
+                case 4: collectCoin();
+                    break;
+                case 5: collectKey();
+                    break;
+                case 6: tryEnterTheDoor();
+                    break;
             }
         }
+
+        // Applies physics ot the player
         game.physics.arcade.collide(player, levelLayer, move);
 
-        // character emits light to reveal the map
+        // Character emits light to reveal the map
         lightSprite.reset(game.camera.x, game.camera.y);
-        updateShadowTexture();
-    }
-
-    function updateShadowTexture() {
-        // Draw shadow
-        shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
-        shadowTexture.context.fillRect(0, 0, game.width, game.height);
-
-        var radius = 250 + game.rnd.integerInRange(1, 10),
-            heroX = player.x - game.camera.x,
-            heroY = player.y - game.camera.y;
-
-        // Draw circle of light with a soft edge
-        var gradient = shadowTexture.context.createRadialGradient(
-            heroX, heroY, 100 * 0.75,
-            heroX, heroY, radius);
-        gradient.addColorStop(0, 'rgba(255, 255, 220, 1.0)');
-        gradient.addColorStop(1, 'rgba(255, 255, 30, 0.0)');
-
-        shadowTexture.context.beginPath();
-        shadowTexture.context.fillStyle = gradient;
-        shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI * 2, false);
-        shadowTexture.context.fill();
-
-        // This just tells the engine it should update the texture cache
-        shadowTexture.dirty = true;
+        shadowTexture = updateShadowTexture(game, shadowTexture, player);
     }
 
     function placeCrate(pos) {
-        // performs check whether placement at a position is possible
-        // check whether crate is placed anywhere on top of the player
-        // updates sprite
-        // player stops moving for 1/2 second to 'conjure' the crate
-        // remove old crate if one already exists
-        // updates sprite, walking resumes
+        var velocityBeforeCast = playerSpeed,
+            facingStateBeforeCast = player.facing;
 
-        var velocityX = playerSpeed,
-            facingState = player.facing;
-
-        // performs checks for diagonally adjascent tiles and tiles directly above the player
-        if (!levelMap.getTileWorldXY(pos.x, pos.y, tileSize, tileSize, levelLayer) && !player.body.hitTest(pos.x, pos.y)) {
-            // is there already a tile placed by the player?
-            if (cratePos) {
-                // remove the tile placed by the player
-                levelMap.removeTileWorldXY(cratePos.x, cratePos.y, tileSize, tileSize, levelLayer);
+        // Prevents to put crate over the player
+        if (!levelMap.getTileWorldXY(pos.x, pos.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer) && !player.body.hitTest(pos.x, pos.y)) {
+            // Is there already a crate placed by the player?
+            if (levelLayer.cratePos) {
+                levelMap.removeTileWorldXY(levelLayer.cratePos.x, levelLayer.cratePos.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
             }
-            // place the tile on mouse/touch position
-            levelMap.putTileWorldXY(2, pos.x, pos.y, tileSize, tileSize, levelLayer);
-            // save placed tile position
-            cratePos = new Phaser.Point(pos.x, pos.y);
 
+            // Place the crate on the mouse position
+            levelMap.putTileWorldXY(2, pos.x, pos.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
 
+            // Saves placed crate position
+            levelLayer.cratePos = new Phaser.Point(pos.x, pos.y);
+
+            // Cast the magic
             playerSpeed = 0;
             player.animations.play('cast');
             playerState = 'cast';
 
+            // Restart the mooving animation
             setTimeout(function () {
-                playerSpeed = velocityX;
-                playerState = facingState;
-            }, 500);
+                playerSpeed = velocityBeforeCast;
+                playerState = facingStateBeforeCast;
+            }, 200);
         }
 
     }
 
     function move() {
         // walks automatically (or until a button is pressed to resume)
-        // alternative: walks using the left and right arrows
         // changes direction on collision
         // updates sprite when necessary
-        
-        // console.log(tileUnderPlayer);
-        tileAbovePlayer = levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer);
-        tileRightDiagonalToPlayer = levelMap.getTileWorldXY(player.x + tileSize, player.y - tileSize, tileSize, tileSize, levelLayer);
-        tileLeftDiagonalToPlayer = levelMap.getTileWorldXY(player.x - tileSize, player.y - tileSize, tileSize, tileSize, levelLayer);
-        // is the player blocked down, that is: is the player on the floor?
+        processKeyboardInput();
+        processPlayerMovement();
+    }
+
+    function processKeyboardInput() {
         if (controller.down.isDown) {
             player.animations.stop();
             player.frame = 4;
@@ -236,52 +164,40 @@ window.onLoad = function () {
         }
 
         if (controller.left.isDown) {
-            playerSpeed = -SPEED;
+            playerSpeed = -CONSTANTS.SPEED;
             player.animations.play('left');
         }
 
         if (controller.right.isDown) {
-            playerSpeed = SPEED;
+            playerSpeed = CONSTANTS.SPEED;
             player.animations.play('right');
         }
+    }
 
-        if (player.body.blocked.down && player.body.onFloor()) {
-            if (tileUnderPlayer && tileUnderPlayer.index === 3) {
-                // Kill the magician! This is temporary!
-                game.paused = true;
-            } else {
-                // set player horizontal velocity
-                player.body.velocity.x = playerSpeed;
-                // the player is definitively not jumping
-                if (playerSpeed < 0) {
-                    player.animations.play('left');
-                }
-                if (playerSpeed > 0) {
-                    player.animations.play('right');
-                }
-                playerAirborne = false;
+    function processPlayerMovement() {
+        // Is the player blocked down, that is: is the player on the floor or on the crate?
+        if (player.body.blocked.down) {
+            player.body.velocity.x = playerSpeed;
+            if (playerSpeed < 0) {
+                player.animations.play('left');
             }
+            if (playerSpeed > 0) {
+                player.animations.play('right');
+            }
+            playerAirborne = false;
         }
+
         if (player.body.blocked.right && playerSpeed > 0) {
             // performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
-            if ((!tileRightDiagonalToPlayer && !tileAbovePlayer) ||
-                (tileAbovePlayer && (tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) ||
-                (tileRightDiagonalToPlayer && (tileRightDiagonalToPlayer.index === 4 || tileRightDiagonalToPlayer.index === 5)) ||
-                playerAirborne) {
-                // jump
+            if (allowedToJump('left')) {
                 jump();
-            }
-            else {
+            } else {
                 player.animations.play('left');
                 playerSpeed *= -1;
             }
-        }
-        if (player.body.blocked.left && playerSpeed < 0) {
-            // performs checks just as above but instead for the left diagonal
-            if ((!tileLeftDiagonalToPlayer && !tileAbovePlayer) ||
-                (tileAbovePlayer && (tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) ||
-                (tileLeftDiagonalToPlayer && (tileLeftDiagonalToPlayer.index === 4 || tileLeftDiagonalToPlayer.index === 5)) ||
-                playerAirborne) {
+        } else if (player.body.blocked.left && playerSpeed < 0) {
+            // performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
+            if (allowedToJump('right')) {
                 jump();
             }
             else {
@@ -289,58 +205,142 @@ window.onLoad = function () {
                 playerSpeed *= -1;
             }
         }
-
-        updateSprite();
     }
 
-    function updateSprite() {
-        // ..
+    function allowedToJump (direction) {
+        var tileDiagonalToPlayer,
+            tileAbovePlayer = levelMap.getTileWorldXY(player.x, player.y - CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+
+        if (direction === 'left') {
+            tileDiagonalToPlayer = levelMap.getTileWorldXY(player.x + CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+        } else {
+            tileDiagonalToPlayer = levelMap.getTileWorldXY(player.x - CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+
+        }
+
+        if (!tileDiagonalToPlayer && !tileAbovePlayer) {
+            return true;
+        }
+        if (tileAbovePlayer && (tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) {
+            return true;
+        }
+        if (tileDiagonalToPlayer && (tileDiagonalToPlayer.index === 4 || tileDiagonalToPlayer.index === 5)) {
+            return true;
+        }
+        if (playerAirborne) {
+            return true;
+        }
+        return false;
     }
 
     function jump() {
-        // ..
-
         // setting player vertical velocity
-
         player.body.velocity.y = -100;
-
         player.body.velocity.x = playerSpeed / 2;
         player.animations.stop();
+
         if (playerSpeed > 0) {
             player.frame = 4;
-        }
-        if (playerSpeed < 0) {
+        } else if (playerSpeed < 0) {
             player.frame = 2;
         }
+
         playerAirborne = true;
     }
 
-    function collect() {
-        // collects coins and keys
-
-        if (tileUnderPlayer.index === 4) {
-            coinsCollected += 1;
-            levelMap.removeTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
-        }
-        if (tileUnderPlayer.index === 5) {
-            hasKey = true;
-            levelMap.removeTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
-        }
+    function collectCoin() {
+        coinsCollected += 1;
+        levelMap.removeTileWorldXY(player.x, player.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
     }
 
-    function enterDoor() {
-        if (tileUnderPlayer.index === 6) {
+    function collectKey() {
+        hasKey = true;
+        levelMap.removeTileWorldXY(player.x, player.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+    }
+
+    function tryEnterTheDoor() {
+        if (hasKey) {
             game.paused = true;
         }
     }
 
 
-    function initLevel() {
-        // loads initial data for the level, everything sans resetting statistics
+    // function initLevel() {
+    //     // loads initial data for the level, everything sans resetting statistics
 
-    }
+    // }
 
     game.state.add('ConjurerGame', ConjurerGame);
     game.state.start('ConjurerGame');
 
-}();
+}());
+
+function createPlayer(game) {
+    var player = game.add.sprite(80, 464, 'player');
+    // sets the anchor of the player object to the middle of the picture
+    player.anchor.setTo(0.5, 0.5);
+    // sets player gravity and allows collision with other objects
+    game.physics.enable(player, Phaser.Physics.ARCADE);
+    // sets gravity in the vertical context
+    player.body.gravity.y = 500;
+    // playerSpeed = CONSTANTS.SPEED;
+    // playerState = 'right';
+    // parameters are placeholder values until a spritesheet is made
+    player.animations.add('left', [0, 1, 2], 10, true);
+    player.animations.add('right', [4, 5, 6], 10, true);
+    player.animations.add('cast', [3], 1, true);
+
+    return player;
+}
+
+function createLevelMap(game) {
+    var levelMap = game.add.tilemap('level1');
+    levelMap.addTilesetImage('wall');
+    levelMap.addTilesetImage('crate');
+    levelMap.addTilesetImage('spikes');
+    levelMap.addTilesetImage('coin');
+    levelMap.addTilesetImage('key');
+    levelMap.addTilesetImage('door');
+    // Define which objects are solid - '1' (bricks) and '2' box in the tilemap array
+    levelMap.setCollisionBetween(1, 2);
+
+    return levelMap;
+}
+
+
+function killPlayer(game) {
+    // Kill the magician!
+    game.paused = true;
+}
+
+function updateShadowTexture(game, shadowTexture, player) {
+    // Drow shadow
+    var radius,
+        heroX,
+        heroY,
+        gradient;
+
+    shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
+    shadowTexture.context.fillRect(0, 0, game.width, game.height);
+
+    radius = 250 + game.rnd.integerInRange(1, 10);
+    heroX = player.x - game.camera.x;
+    heroY = player.y - game.camera.y;
+
+    // Draw circle of light with a soft edge
+    gradient = shadowTexture.context.createRadialGradient(
+        heroX, heroY, 100 * 0.75,
+        heroX, heroY, radius);
+    gradient.addColorStop(0, 'rgba(255, 255, 220, 1.0)');
+    gradient.addColorStop(1, 'rgba(255, 255, 30, 0.0)');
+
+    shadowTexture.context.beginPath();
+    shadowTexture.context.fillStyle = gradient;
+    shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI * 2, false);
+    shadowTexture.context.fill();
+
+    // This just tells the engine it should update the texture cache
+    shadowTexture.dirty = true;
+
+    return shadowTexture;
+}
