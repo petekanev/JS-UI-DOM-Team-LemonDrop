@@ -3,33 +3,23 @@
 var CONSTANTS = {
     SPEED: 100,
     TILE_SIZE : 32,
+    PLAYER_TILE_WIDTH: 30,
     GAME_WIDTH: 1024,
-    GAME_HEIGHT: 512
+    GAME_HEIGHT: 512,
+    PLAYER_SPEED: 100,
+    SHADOW_RADIUS: 250
 };
 
 var ConjurerGame = (function () {
     var player,
-        playerAirborne = false,
-        playerState,
-        playerSpeed =100,
-        placedCrates = 0;
-
-    var coinsCollected = 0,
-        hasKey = false,
-        timeElapsed = 0,
-        deads = 0;
-
-    var levelMap,
-        levelLayer;
-
-    var controller;
-
-    var lightSprite,
-        shadowTexture;
+        playerAssets,
+        levelMap,
+        levelLayer,
+        keyInputController,
+        shadowMask;
 
     var game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame');   
     var ConjurerGame = function (game) {};
-
     ConjurerGame.prototype = {
         preload: preload,
         create: create,
@@ -51,7 +41,7 @@ var ConjurerGame = (function () {
         // preloads the player spritesheet with key 'player', width 30, height 32, -1 as
         // as the following parameter means that we allow the engine to decide the amount
         // of frames the spritesheet contains; 5px by 5px is the spacing and margin between frames
-        this.load.spritesheet('player', 'assets/sprites/player.png', 30, 32);
+        this.load.spritesheet('player', 'assets/sprites/player.png', CONSTANTS.PLAYER_TILE_WIDTH, CONSTANTS.TILE_SIZE);
 
         // audio to be loaded for different events within the game
         // game.load.audio('coinCollect', 'assets\\sounds\\coin.mp3');
@@ -67,15 +57,16 @@ var ConjurerGame = (function () {
 
         // Creates the tilemap and the objects on the map using the loaded sources
         levelMap = createLevelMap(this);
-        // Defines current level layer
         levelLayer = levelMap.createLayer('myLevel1');
         levelLayer.cratePos = null;
 
         // Adds a key input controllerto the game
-        controller = this.input.keyboard.createCursorKeys();
+        keyInputController = this.input.keyboard.createCursorKeys();
 
         // Creates player
         player = createPlayer(this);
+
+        playerAssets = initializePlayerAssets();
 
         //player.animations.add('right', [], 1, true);
         // waits for input, either touch or mouse click to call provided method
@@ -85,7 +76,7 @@ var ConjurerGame = (function () {
         // Character emits light to reveal the map ???? Check how to extract it in a method!!!
         shadowTexture = this.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
         lightSprite = this.add.image(this.camera.x, this.camera.y, shadowTexture);
-        lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
+        lightSprite.blendMode = Phaser.blendModes.MULTIPLY;        
     }
 
     function update() {
@@ -110,7 +101,7 @@ var ConjurerGame = (function () {
         }
 
         // Applies physics ot the player
-        game.physics.arcade.collide(player, levelLayer, move);
+        this.physics.arcade.collide(player, levelLayer, move);
 
         // Character emits light to reveal the map
         lightSprite.reset(game.camera.x, game.camera.y);
@@ -118,34 +109,47 @@ var ConjurerGame = (function () {
     }
 
     function placeCrate(pos) {
-        var velocityBeforeCast = playerSpeed,
+        var velocityBeforeCast = playerAssets.playerSpeed,
             facingStateBeforeCast = player.facing;
 
         // Prevents to put crate over the player
-        if (!levelMap.getTileWorldXY(pos.x, pos.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer) && !player.body.hitTest(pos.x, pos.y)) {
+        if (!getCurrentTile(pos.x, pos.y) && !player.body.hitTest(pos.x, pos.y)) {
             // Is there already a crate placed by the player?
             if (levelLayer.cratePos) {
-                levelMap.removeTileWorldXY(levelLayer.cratePos.x, levelLayer.cratePos.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+                removeTileFromPosition(levelLayer.cratePos);
             }
 
             // Place the crate on the mouse position
-            levelMap.putTileWorldXY(2, pos.x, pos.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+            placeTileOnPosition(2, pos.x, pos.y);
 
             // Saves placed crate position
             levelLayer.cratePos = new Phaser.Point(pos.x, pos.y);
 
             // Cast the magic
-            playerSpeed = 0;
+            playerAssets.playerSpeed = 0;
             player.animations.play('cast');
-            playerState = 'cast';
+            playerAssets.playerState = 'cast';
 
             // Restart the mooving animation
             setTimeout(function () {
-                playerSpeed = velocityBeforeCast;
-                playerState = facingStateBeforeCast;
+                playerAssets.playerSpeed = velocityBeforeCast;
+                playerAssets.playerState = facingStateBeforeCast;
             }, 200);
         }
 
+    }
+
+    function getCurrentTile(x, y) {
+        var result = levelMap.getTileWorldXY(x, y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+        return result;
+    }
+
+    function removeTileFromPosition(tile) {
+        levelMap.removeTileWorldXY(tile.x, tile.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+    }
+
+    function placeTileOnPosition (tileType, x, y) {
+        levelMap.putTileWorldXY(tileType, x, y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
     }
 
     function move() {
@@ -157,19 +161,19 @@ var ConjurerGame = (function () {
     }
 
     function processKeyboardInput() {
-        if (controller.down.isDown) {
+        if (keyInputController.down.isDown) {
             player.animations.stop();
             player.frame = 4;
-            playerSpeed = 0;
+            playerAssets.playerSpeed = 0;
         }
 
-        if (controller.left.isDown) {
-            playerSpeed = -CONSTANTS.SPEED;
+        if (keyInputController.left.isDown) {
+            playerAssets.playerSpeed = -CONSTANTS.SPEED;
             player.animations.play('left');
         }
 
-        if (controller.right.isDown) {
-            playerSpeed = CONSTANTS.SPEED;
+        if (keyInputController.right.isDown) {
+            playerAssets.playerSpeed = CONSTANTS.SPEED;
             player.animations.play('right');
         }
     }
@@ -177,44 +181,44 @@ var ConjurerGame = (function () {
     function processPlayerMovement() {
         // Is the player blocked down, that is: is the player on the floor or on the crate?
         if (player.body.blocked.down) {
-            player.body.velocity.x = playerSpeed;
-            if (playerSpeed < 0) {
+            player.body.velocity.x = playerAssets.playerSpeed;
+            if (playerAssets.playerSpeed < 0) {
                 player.animations.play('left');
             }
-            if (playerSpeed > 0) {
+            if (playerAssets.playerSpeed > 0) {
                 player.animations.play('right');
             }
-            playerAirborne = false;
+            playerAssets.playerAirborne = false;
         }
 
-        if (player.body.blocked.right && playerSpeed > 0) {
+        if (player.body.blocked.right && playerAssets.playerSpeed > 0) {
             // performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
             if (allowedToJump('left')) {
                 jump();
             } else {
                 player.animations.play('left');
-                playerSpeed *= -1;
+                playerAssets.playerSpeed *= -1;
             }
-        } else if (player.body.blocked.left && playerSpeed < 0) {
+        } else if (player.body.blocked.left && playerAssets.playerSpeed < 0) {
             // performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
             if (allowedToJump('right')) {
                 jump();
             }
             else {
                 player.animations.play('right');
-                playerSpeed *= -1;
+                playerAssets.playerSpeed *= -1;
             }
         }
     }
 
     function allowedToJump (direction) {
         var tileDiagonalToPlayer,
-            tileAbovePlayer = levelMap.getTileWorldXY(player.x, player.y - CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+            tileAbovePlayer = getCurrentTile(player.x, player.y - CONSTANTS.TILE_SIZE);
 
         if (direction === 'left') {
-            tileDiagonalToPlayer = levelMap.getTileWorldXY(player.x + CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+            tileDiagonalToPlayer = getCurrentTile(player.x + CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE);
         } else {
-            tileDiagonalToPlayer = levelMap.getTileWorldXY(player.x - CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+            tileDiagonalToPlayer = getCurrentTile(player.x - CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE);
 
         }
 
@@ -227,7 +231,7 @@ var ConjurerGame = (function () {
         if (tileDiagonalToPlayer && (tileDiagonalToPlayer.index === 4 || tileDiagonalToPlayer.index === 5)) {
             return true;
         }
-        if (playerAirborne) {
+        if (playerAssets.playerAirborne) {
             return true;
         }
         return false;
@@ -236,30 +240,30 @@ var ConjurerGame = (function () {
     function jump() {
         // setting player vertical velocity
         player.body.velocity.y = -100;
-        player.body.velocity.x = playerSpeed / 2;
+        player.body.velocity.x = playerAssets.playerSpeed / 2;
         player.animations.stop();
 
-        if (playerSpeed > 0) {
+        if (playerAssets.playerSpeed > 0) {
             player.frame = 4;
-        } else if (playerSpeed < 0) {
+        } else if (playerAssets.playerSpeed < 0) {
             player.frame = 2;
         }
 
-        playerAirborne = true;
+        playerAssets.playerAirborne = true;
     }
 
     function collectCoin() {
-        coinsCollected += 1;
-        levelMap.removeTileWorldXY(player.x, player.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+        playerAssets.coinsCollected += 1;
+        removeTileFromPosition(player);
     }
 
     function collectKey() {
-        hasKey = true;
-        levelMap.removeTileWorldXY(player.x, player.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, levelLayer);
+        playerAssets.hasKey = true;
+        removeTileFromPosition(player);
     }
 
     function tryEnterTheDoor() {
-        if (hasKey) {
+        if (playerAssets.hasKey) {
             game.paused = true;
         }
     }
@@ -283,8 +287,6 @@ function createPlayer(game) {
     game.physics.enable(player, Phaser.Physics.ARCADE);
     // sets gravity in the vertical context
     player.body.gravity.y = 500;
-    // playerSpeed = CONSTANTS.SPEED;
-    // playerState = 'right';
     // parameters are placeholder values until a spritesheet is made
     player.animations.add('left', [0, 1, 2], 10, true);
     player.animations.add('right', [4, 5, 6], 10, true);
@@ -315,32 +317,38 @@ function killPlayer(game) {
 
 function updateShadowTexture(game, shadowTexture, player) {
     // Drow shadow
-    var radius,
-        heroX,
-        heroY,
-        gradient;
+    var gradient;
 
     shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
     shadowTexture.context.fillRect(0, 0, game.width, game.height);
 
-    radius = 250 + game.rnd.integerInRange(1, 10);
-    heroX = player.x - game.camera.x;
-    heroY = player.y - game.camera.y;
-
     // Draw circle of light with a soft edge
     gradient = shadowTexture.context.createRadialGradient(
-        heroX, heroY, 100 * 0.75,
-        heroX, heroY, radius);
+        player.x, player.y, 100 * 0.75,
+        player.x, player.y, CONSTANTS.SHADOW_RADIUS);
     gradient.addColorStop(0, 'rgba(255, 255, 220, 1.0)');
     gradient.addColorStop(1, 'rgba(255, 255, 30, 0.0)');
 
     shadowTexture.context.beginPath();
     shadowTexture.context.fillStyle = gradient;
-    shadowTexture.context.arc(heroX, heroY, radius, 0, Math.PI * 2, false);
+    shadowTexture.context.arc(player.x, player.y, CONSTANTS.SHADOW_RADIUS, 0, Math.PI * 2, false);
     shadowTexture.context.fill();
 
     // This just tells the engine it should update the texture cache
     shadowTexture.dirty = true;
 
     return shadowTexture;
+}
+
+function initializePlayerAssets() {
+    var playerAssets = {
+        playerState: 'left',
+        playerAirborne: false,
+        playerSpeed: CONSTANTS.PLAYER_SPEED,
+        coinsCollected: 0,
+        hasKey: false,
+        timeElapsed: 0,
+        lifes: 0
+    };
+    return playerAssets;
 }
