@@ -194,6 +194,7 @@ window.onLoad = function () {
 
 
             playerSpeed = 0;
+            player.animations.play('cast');
             playerState = 'cast';
 
             setTimeout(function () {
