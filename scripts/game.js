@@ -25,6 +25,7 @@ window.onLoad = function () {
         cratePos = null,
         tileUnderPlayer,
         tileAbovePlayer,
+        tileBelowPlayer,
         tileRightDiagonalToPlayer,
         tileLeftDiagonalToPlayer,
         level1Map,
@@ -89,7 +90,7 @@ window.onLoad = function () {
         levelMap.addTilesetImage('key');
         levelMap.addTilesetImage('door');
         // adds collision (objects are solid) to all objects with '1' in the tilemap array
-        levelMap.setCollisionBetween(1, 3);
+        levelMap.setCollisionBetween(1, 2);
 
         controller = game.input.keyboard.createCursorKeys();
 
@@ -126,7 +127,7 @@ window.onLoad = function () {
 
         // character emits light to reveal the map
         shadowTexture = game.add.bitmapData(game.width, game.height);
-        lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture)
+        lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture);
 
         lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
     }
@@ -137,6 +138,18 @@ window.onLoad = function () {
         // setting player x speed to zero
         player.body.velocity.x = 0;
         // check for collision between the player and the level, and call "movePlayer" if there's a collision
+        tileUnderPlayer = levelMap.getTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
+        if (tileUnderPlayer !== null) {
+            collect();
+            console.log('Check');
+            if (tileUnderPlayer.index === 2){
+                // Kill the magician!
+                game.paused = true;
+            }
+            if (hasKey) {
+                enterDoor();
+            }
+        }
         game.physics.arcade.collide(player, levelLayer, move);
 
         // character emits light to reveal the map
@@ -210,8 +223,8 @@ window.onLoad = function () {
         // alternative: walks using the left and right arrows
         // changes direction on collision
         // updates sprite when necessary
-
-        tileUnderPlayer = levelMap.getTileWorldXY(player.x, player.y, tileSize, tileSize, levelLayer);
+        
+        // console.log(tileUnderPlayer);
         tileAbovePlayer = levelMap.getTileWorldXY(player.x, player.y - tileSize, tileSize, tileSize, levelLayer);
         tileRightDiagonalToPlayer = levelMap.getTileWorldXY(player.x + tileSize, player.y - tileSize, tileSize, tileSize, levelLayer);
         tileLeftDiagonalToPlayer = levelMap.getTileWorldXY(player.x - tileSize, player.y - tileSize, tileSize, tileSize, levelLayer);
@@ -232,17 +245,22 @@ window.onLoad = function () {
             player.animations.play('right');
         }
 
-        if (player.body.blocked.down) {
-            // set player horizontal velocity
-            player.body.velocity.x = playerSpeed;
-            // the player is definitively not jumping
-            if (playerSpeed < 0) {
-                player.animations.play('left');
+        if (player.body.blocked.down && player.body.onFloor()) {
+            if (tileUnderPlayer && tileUnderPlayer.index === 3) {
+                // Kill the magician! This is temporary!
+                game.paused = true;
+            } else {
+                // set player horizontal velocity
+                player.body.velocity.x = playerSpeed;
+                // the player is definitively not jumping
+                if (playerSpeed < 0) {
+                    player.animations.play('left');
+                }
+                if (playerSpeed > 0) {
+                    player.animations.play('right');
+                }
+                playerAirborne = false;
             }
-            if (playerSpeed > 0) {
-                player.animations.play('right');
-            }
-            playerAirborne = false;
         }
         if (player.body.blocked.right && playerSpeed > 0) {
             // performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
@@ -269,14 +287,6 @@ window.onLoad = function () {
             else {
                 player.animations.play('right');
                 playerSpeed *= -1;
-            }
-        }
-
-        if (tileUnderPlayer !== null) {
-            collect();
-
-            if (hasKey) {
-                enterDoor();
             }
         }
 
