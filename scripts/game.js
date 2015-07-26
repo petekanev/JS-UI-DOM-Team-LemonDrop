@@ -13,7 +13,8 @@ var CONSTANTS = {
     CASTING_TIMEOUT: 300,
     JUMP_VELOCITY_STOPPER: -150,
     PLAYER_HORIZONTAL_STARTING_POSITION: 80,
-    PLAYER_VERTICAL_STARTING_POSITION: 464 
+    PLAYER_VERTICAL_STARTING_POSITION: 464,
+    PAUSED_TEXT: 'Click to resume game!' 
 };
 
 var ConjurerGame = (function () {
@@ -21,8 +22,10 @@ var ConjurerGame = (function () {
         playerAssets,
         levelMap,
         levelLayer,
-        keyInputController,
+        inputController,
         shadowMask,
+        pauseButton,
+        pausedText,
         levelCounter = 1,
         game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame'),
         ConjurerGame = function (game) {},
@@ -53,6 +56,8 @@ var ConjurerGame = (function () {
         this.load.image('key', 'assets\\images\\key.png');
         this.load.image('door', 'assets\\images\\door.png');
         this.load.image('spikes', 'assets\\images\\spikes.png');
+        this.load.image('pause', 'assets\\images\\pause.png');
+
 
         // preloads the player spritesheet with key 'player', width 30, h1eight 32, -1 as
         // as the following parameter means that we allow the engine to decide the amount
@@ -77,22 +82,33 @@ var ConjurerGame = (function () {
         levelLayer.cratePos = null;
 
         // Adds a key input controllerto the game
-        keyInputController = game.input.keyboard.createCursorKeys();
+        inputController = game.input.keyboard.createCursorKeys();
 
         // Creates player
         player = createPlayer(game);
 
         playerAssets = initializePlayerAssets();
 
-        //player.animations.add('right', [], 1, true);
-        // waits for input, either touch or mouse click to call provided method
-        // adds an onDown event to be referred to later on
         game.input.onUp.add(placeCrate, game);
+        game.input.onDown.add(function () {
+            if (game.paused) {
+                game.paused = false;
+                pausedText.destroy();
+            }
+        }, game);
 
-        // Character emits light to reveal the map ???? Check how to extract it in a method!!!
+        //Applies an almost black mask over the entire stage       
         shadowTexture = game.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
         lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture);
         lightSprite.blendMode = Phaser.blendModes.MULTIPLY;        
+
+        pauseButton = game.add.sprite(8, 8, 'pause');
+        pauseButton.inputEnabled = true;
+        pauseButton.events.onInputUp.add(function () {
+            game.paused = true;
+            pausedText = game.add.text(game.world.centerX, game.world.centerY, CONSTANTS.PAUSED_TEXT, { font: "65px Impact", fill: "#fff", align: "center" });
+            pausedText.anchor.setTo(0.5);
+        }, game);
     }
 
     function update() {
@@ -259,18 +275,18 @@ var ConjurerGame = (function () {
     }
 
     function processKeyboardInput() {
-        if (keyInputController.down.isDown) {
+        if (inputController.down.isDown) {
             player.animations.stop();
             player.frame = 4;
             playerAssets.playerSpeed = 0;
         }
 
-        if (keyInputController.left.isDown) {
+        if (inputController.left.isDown) {
             playerAssets.playerSpeed = -CONSTANTS.SPEED;
             player.animations.play('left');
         }
 
-        if (keyInputController.right.isDown) {
+        if (inputController.right.isDown) {
             playerAssets.playerSpeed = CONSTANTS.SPEED;
             player.animations.play('right');
         }
