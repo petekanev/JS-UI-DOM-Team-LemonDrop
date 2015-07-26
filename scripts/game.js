@@ -140,6 +140,7 @@ var ConjurerGame = (function () {
         player.animations.add('left', [0, 1, 2, 3], CONSTANTS.FRAME_RATE, true);
         player.animations.add('right', [4, 5, 6, 7], CONSTANTS.FRAME_RATE, true);
         player.animations.add('cast', [9], 1, true);
+        player.animations.add('castleft', [10], 1, true);
 
         return player;
     }
@@ -216,8 +217,15 @@ var ConjurerGame = (function () {
 
             // Cast the magic
             playerAssets.playerSpeed = 0;
-            player.animations.play('cast');
+
+            if (velocityBeforeCast > 0) {
+                player.animations.play('cast');
+            }
+            else {
+                player.animations.play('castleft');
+            }
             playerAssets.playerState = 'cast';
+
 
             // Restart the mooving animation
             setTimeout(function () {
