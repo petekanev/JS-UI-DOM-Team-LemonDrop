@@ -11,7 +11,9 @@ var CONSTANTS = {
     PLAYER_BODY_GRAVITY: 500,
     FRAME_RATE: 10,
     CASTING_TIMEOUT: 300,
-    JUMP_VELOCITY_STOPPER: -150
+    JUMP_VELOCITY_STOPPER: -150,
+    PLAYER_HORIZONTAL_STARTING_POSITION: 80,
+    PLAYER_VERTICAL_STARTING_POSITION: 464 
 };
 
 var ConjurerGame = (function () {
@@ -34,7 +36,7 @@ var ConjurerGame = (function () {
 
     ConjurerGame2.prototype = {
         preload: preload,
-        create: createLevel2,
+        create: create,
         update: update
     };
 
@@ -91,36 +93,6 @@ var ConjurerGame = (function () {
         lightSprite.blendMode = Phaser.blendModes.MULTIPLY;        
     }
 
-    function createLevel2() {
-        // ???? reset statistics ????
-
-        // Initiates arcade physics (objects can collide)
-        game.physics.startSystem(Phaser.Physics.ARCADE);
-
-        // Creates the tilemap and the objects on the map using the loaded sources
-        levelMap = createLevelMap(game);
-        levelLayer = levelMap.createLayer('level' + levelCounter.toString());
-        levelLayer.cratePos = null;
-
-        // Adds a key input controllerto the game
-        keyInputController = game.input.keyboard.createCursorKeys();
-
-        // Creates player
-        player = createPlayer(game);
-
-        playerAssets = initializePlayerAssets();
-
-        //player.animations.add('right', [], 1, true);
-        // waits for input, either touch or mouse click to call provided method
-        // adds an onDown event to be referred to later on
-        game.input.onUp.add(placeCrate, game);
-
-        // Character emits light to reveal the map ???? Check how to extract it in a method!!!
-        shadowTexture = game.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
-        lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture);
-        lightSprite.blendMode = Phaser.blendModes.MULTIPLY; 
-    }
-
     function update() {
         var tileUnderPlayer;
         
@@ -157,7 +129,7 @@ var ConjurerGame = (function () {
     }
 
     function createPlayer(game) {
-        var player = game.add.sprite(80, 464, 'player');
+        var player = game.add.sprite(CONSTANTS.PLAYER_HORIZONTAL_STARTING_POSITION, CONSTANTS.PLAYER_VERTICAL_STARTING_POSITION, 'player');
         // sets the anchor of the player object to the middle of the picture
         player.anchor.setTo(0.5, 0.5);
         // sets player gravity and allows collision with other objects
