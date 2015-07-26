@@ -7,7 +7,11 @@ var CONSTANTS = {
     GAME_WIDTH: 1024,
     GAME_HEIGHT: 512,
     PLAYER_SPEED: 100,
-    SHADOW_RADIUS: 250
+    SHADOW_RADIUS: 250,
+    PLAYER_BODY_GRAVITY: 500,
+    FRAME_RATE: 10,
+    CASTING_TIMEOUT: 300,
+    JUMP_VELOCITY_STOPPER: -150
 };
 
 var ConjurerGame = (function () {
@@ -16,13 +20,21 @@ var ConjurerGame = (function () {
         levelMap,
         levelLayer,
         keyInputController,
-        shadowMask;
+        shadowMask,
+        levelCounter = 1,
+        game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame'),
+        ConjurerGame = function (game) {},
+        ConjurerGame2 = function(game) {};
 
-    var game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame');   
-    var ConjurerGame = function (game) {};
     ConjurerGame.prototype = {
         preload: preload,
         create: create,
+        update: update
+    };
+
+    ConjurerGame2.prototype = {
+        preload: preload,
+        create: createLevel2,
         update: update
     };
 
@@ -30,7 +42,7 @@ var ConjurerGame = (function () {
         //??add a background image???
 
         // Loads game board elements - tilrmap and images
-        this.load.tilemap('level1', 'level2.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.tilemap('conjurerLevels', 'conjurerLevels.json', null, Phaser.Tilemap.TILED_JSON);
         this.load.image('wall', 'assets\\images\\wall.png');
         this.load.image('crate', 'assets\\images\\crate.png');
         this.load.image('coin', 'assets\\images\\coin.png');
@@ -53,30 +65,60 @@ var ConjurerGame = (function () {
         // ???? reset statistics ????
 
         // Initiates arcade physics (objects can collide)
-        this.physics.startSystem(Phaser.Physics.ARCADE);
+        game.physics.startSystem(Phaser.Physics.ARCADE);
 
         // Creates the tilemap and the objects on the map using the loaded sources
-        levelMap = createLevelMap(this);
-        levelLayer = levelMap.createLayer('myLevel1');
+        levelMap = createLevelMap(game);
+        levelLayer = levelMap.createLayer('level' + levelCounter.toString());
         levelLayer.cratePos = null;
 
         // Adds a key input controllerto the game
-        keyInputController = this.input.keyboard.createCursorKeys();
+        keyInputController = game.input.keyboard.createCursorKeys();
 
         // Creates player
-        player = createPlayer(this);
+        player = createPlayer(game);
 
         playerAssets = initializePlayerAssets();
 
         //player.animations.add('right', [], 1, true);
         // waits for input, either touch or mouse click to call provided method
         // adds an onDown event to be referred to later on
-        this.input.onUp.add(placeCrate, this);
+        game.input.onUp.add(placeCrate, game);
 
         // Character emits light to reveal the map ???? Check how to extract it in a method!!!
-        shadowTexture = this.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
-        lightSprite = this.add.image(this.camera.x, this.camera.y, shadowTexture);
+        shadowTexture = game.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
+        lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture);
         lightSprite.blendMode = Phaser.blendModes.MULTIPLY;        
+    }
+
+    function createLevel2() {
+        // ???? reset statistics ????
+
+        // Initiates arcade physics (objects can collide)
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+
+        // Creates the tilemap and the objects on the map using the loaded sources
+        levelMap = createLevelMap(game);
+        levelLayer = levelMap.createLayer('level' + levelCounter.toString());
+        levelLayer.cratePos = null;
+
+        // Adds a key input controllerto the game
+        keyInputController = game.input.keyboard.createCursorKeys();
+
+        // Creates player
+        player = createPlayer(game);
+
+        playerAssets = initializePlayerAssets();
+
+        //player.animations.add('right', [], 1, true);
+        // waits for input, either touch or mouse click to call provided method
+        // adds an onDown event to be referred to later on
+        game.input.onUp.add(placeCrate, game);
+
+        // Character emits light to reveal the map ???? Check how to extract it in a method!!!
+        shadowTexture = game.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
+        lightSprite = game.add.image(game.camera.x, game.camera.y, shadowTexture);
+        lightSprite.blendMode = Phaser.blendModes.MULTIPLY; 
     }
 
     function update() {
@@ -121,17 +163,17 @@ var ConjurerGame = (function () {
         // sets player gravity and allows collision with other objects
         game.physics.enable(player, Phaser.Physics.ARCADE);
         // sets gravity in the vertical context
-        player.body.gravity.y = 500;
+        player.body.gravity.y = CONSTANTS.PLAYER_BODY_GRAVITY;
         // parameters are placeholder values until a spritesheet is made
-        player.animations.add('left', [0, 1, 2], 10, true);
-        player.animations.add('right', [4, 5, 6], 10, true);
+        player.animations.add('left', [0, 1, 2], CONSTANTS.FRAME_RATE, true);
+        player.animations.add('right', [4, 5, 6], CONSTANTS.FRAME_RATE, true);
         player.animations.add('cast', [3], 1, true);
 
         return player;
     }
 
     function createLevelMap(game) {
-        var levelMap = game.add.tilemap('level1');
+        var levelMap = game.add.tilemap('conjurerLevels');
         levelMap.addTilesetImage('wall');
         levelMap.addTilesetImage('crate');
         levelMap.addTilesetImage('spikes');
@@ -209,7 +251,7 @@ var ConjurerGame = (function () {
             setTimeout(function () {
                 playerAssets.playerSpeed = velocityBeforeCast;
                 playerAssets.playerState = facingStateBeforeCast;
-            }, 200);
+            }, CONSTANTS.CASTING_TIMEOUT);
         }
     }
 
@@ -313,7 +355,7 @@ var ConjurerGame = (function () {
 
     function jump() {
         // setting player vertical velocity
-        player.body.velocity.y = -150 + playerAssets.counterWeight*2;
+        player.body.velocity.y = CONSTANTS.JUMP_VELOCITY_STOPPER + playerAssets.counterWeight*2;
         player.animations.stop();
 
         if (playerAssets.playerSpeed > 0) {
@@ -338,7 +380,8 @@ var ConjurerGame = (function () {
 
     function tryEnterTheDoor() {
         if (playerAssets.hasKey) {
-            game.paused = true;
+            levelCounter += 1;
+            game.state.start('ConjurerGame2');
         }
     }
 
@@ -348,6 +391,6 @@ var ConjurerGame = (function () {
     }
 
     game.state.add('ConjurerGame', ConjurerGame);
+    game.state.add('ConjurerGame2', ConjurerGame2);
     game.state.start('ConjurerGame');
-
 }());
