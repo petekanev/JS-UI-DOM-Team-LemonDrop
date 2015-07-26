@@ -82,6 +82,8 @@ var ConjurerGame = (function () {
         game.add.sprite(0, 0, 'background');
         // Creates the tilemap and the objects on the map using the loaded sources
         levelMap = createLevelMap(game);
+        levelMap.setCollision([1, 2], true, 'level2');
+        levelMap.setCollision([1, 2], true, 'level1');
         levelLayer = levelMap.createLayer('level' + levelCounter.toString());
         levelLayer.cratePos = null;
 
