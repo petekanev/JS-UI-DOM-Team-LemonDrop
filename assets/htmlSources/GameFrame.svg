@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="1024px" height="768px" viewBox="0 0 1024 768" enable-background="new 0 0 1024 768" xml:space="preserve">
+<pattern  x="-15.5" y="658.5" width="108" height="108" patternUnits="userSpaceOnUse" id="New_Pattern_Swatch_4" viewBox="1 -109 108 108" overflow="visible">
+	<g>
+		<polygon fill="none" points="1,-1 109,-1 109,-109 1,-109 		"/>
+		<image overflow="visible" width="450" height="450" xlink:href="Stones.jpg"  transform="matrix(0.24 0 0 0.24 1 -109)">
+		</image>
+	</g>
+</pattern>
+<rect x="-16.5" y="93.5" display="none" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="1056" height="580"/>
+<rect x="-0.5" y="141.5" display="none" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="1024" height="512"/>
+<line display="none" fill="none" stroke="#000000" stroke-miterlimit="10" x1="936.5" y1="105" x2="936.5" y2="685"/>
+<rect x="-103.5" y="152.5" display="none" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="1024" height="512"/>
+<pattern  id="SVGID_1_" xlink:href="#New_Pattern_Swatch_4" patternTransform="matrix(1 0 0 1 71 16454)">
+</pattern>
+<path fill="url(#SVGID_1_)" d="M1024,768H0V0h1024V768z M1008,96H16v512h992V96z"/>
+<rect x="175.5" y="33.5" display="none" fill="#FFFFFF" stroke="#000000" stroke-miterlimit="10" width="16" height="96"/>
+</svg>

@@ -4,16 +4,124 @@
 		<script type="text/javascript" src="scripts/phaser.min.js"></script>
 		<script type="text/javascript" src="scripts/game.js"></script>
 		<style type="text/css">
-			body {
-				margin: 0;
-				margin-top: 100px;
-				padding: 0;
+			@font-face {
+				font-family: ConjurerFont;
+				
+				src: url('/assets/htmlSources/ConjurerFont.ttf');
 			}
-			canvas {
+			body, canvas, #svgContainer {
+				padding: 0;
 				margin: 0 auto;
+			}
+			body {
+				background-image: url("/assets/htmlSources/Stones.jpg");
+    			background-repeat: repeat;
+    			background-size: 128px;
+    			text-align: center;
+			}
+
+			#titleBarContainer {
+				position:relative;
+				margin: 0 auto;
+				width: 1024px;
+				height: 48px;
+				text-align: left;
+			}
+
+			#titleBarContainer span {
+				display: inline-block;
+				padding: 3px;
+				font-size: 12px;
+				font-family: ConjurerFont, sans-serif;
+				color: yellow;
+			}
+			#titleBarContainer #gameHeader {
+				padding: 35px 20px;
+				font-size: 28px;
+			}
+			#titleBarContainer #gameStats {
+				display: inline-block;
+				padding: 30px 0px 0px 80px;
+			}
+
+			#titleBarContainer #gameStats div {
+				display: inline-block;
+				width: 160px;
+			}
+
+			ellipse, circle, rect, line, path {
+				fill: none;
+				stroke: yellow;
+			}
+
+			#svgClock {
+				padding-left: 820px;
+				position: absolute;
+			}
+			#svgCoin {
+				padding-left: 655px;
+				position: absolute;
+			}
+			#svgHeart {
+				padding-left: 545px;
+				position: absolute;
+				transform: scale(.45);
+				top: -7px;
+			}
+
+			#credits {
+				position:relative;
+				margin: 0 auto;
+				width: 1024px;
+				height: 48px;
+				top: 580px;
+				font-size: 10px;
+				font-family: ConjurerFont, sans-serif;
+				color: yellow;
 			}
 		</style>
 	</head>
 	<body>
+		<div id="titleBarContainer">
+			<svg id="svgClock">
+				<circle cx="13" cy="53" r="12"></circle>
+			    <circle cx="13" cy="53" r="1"></circle>
+				<rect x="11" y="37" width="4" height="4"></rect>
+				<rect x="9" y="35" width="8" height="2"></rect>
+				<line x1="13" y1="51" x2="13" y2="45"/>
+				<line x1="11" y1="54" x2="5" y2="59"/>
+			</svg>
+
+			<svg id="svgCoin">
+				<ellipse cx="15px" cy="51px" rx="10px" ry="15px"/>
+				<path d="M10 49 L16 43 L16 60"/>
+			</svg>
+
+			<svg id="svgHeart">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"
+					d="M45.137,23.041c4.912-24.596,40.457-27.775,42.128-0.435c1.398,22.88-21.333,40.717-42.128,50.522 M45.137,23.041
+					C40.225-1.555,5.057-4.734,3.387,22.606c-1.398,22.88,20.955,40.717,41.75,50.522"/> 
+			</svg>
+		    <span id="gameHeader" x="2%" y="60%">Conjurer Game</span>
+		    <div id="gameStats">
+		    	<div>
+		    		<span x="50%" y="60%">lifes:</span>
+					<span id="lifesContainer" x="57%" y="60%">5</span>
+		    	</div>
+				<div>
+					<span x="65%" y="60%">score: </span>
+					<span id="scoreContainer" x="73%" y="60%">248</span>
+				</div>
+				<div>
+					<span x="82%" y="60%">time: </span>
+					<span id="timeContainer" x="88%" y="60%">00:34.3</span>
+				</div>
+			</div>
+		</div>
+		<div id="credits">
+			<p>
+				Developed by LemonDrop Telerik Academy team &copy 2015
+			</p>
+		</div>
 	</body>
 </html>
