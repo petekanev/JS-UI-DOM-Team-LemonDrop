@@ -55,7 +55,7 @@ var ConjurerGame = (function () {
         // preloads the player spritesheet with key 'player', width 30, height 32, -1 as
         // as the following parameter means that we allow the engine to decide the amount
         // of frames the spritesheet contains; 5px by 5px is the spacing and margin between frames
-        this.load.spritesheet('player', 'assets/sprites/player.png', CONSTANTS.PLAYER_TILE_WIDTH, CONSTANTS.TILE_SIZE);
+        this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', CONSTANTS.PLAYER_TILE_WIDTH, CONSTANTS.TILE_SIZE);
 
         // audio to be loaded for different events within the game
         // game.load.audio('coinCollect', 'assets\\sounds\\coin.mp3');
@@ -137,9 +137,9 @@ var ConjurerGame = (function () {
         // sets gravity in the vertical context
         player.body.gravity.y = CONSTANTS.PLAYER_BODY_GRAVITY;
         // parameters are placeholder values until a spritesheet is made
-        player.animations.add('left', [0, 1, 2], CONSTANTS.FRAME_RATE, true);
-        player.animations.add('right', [4, 5, 6], CONSTANTS.FRAME_RATE, true);
-        player.animations.add('cast', [3], 1, true);
+        player.animations.add('left', [0, 1, 2, 3], CONSTANTS.FRAME_RATE, true);
+        player.animations.add('right', [4, 5, 6, 7], CONSTANTS.FRAME_RATE, true);
+        player.animations.add('cast', [8], 1, true);
 
         return player;
     }
@@ -331,9 +331,9 @@ var ConjurerGame = (function () {
         player.animations.stop();
 
         if (playerAssets.playerSpeed > 0) {
-            player.frame = 4;
+            player.frame = 5;
         } else if (playerAssets.playerSpeed < 0) {
-            player.frame = 2;
+            player.frame = 1;
         }
 
         playerAssets.playerAirborne = true;
