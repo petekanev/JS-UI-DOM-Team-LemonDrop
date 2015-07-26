@@ -44,15 +44,17 @@ var ConjurerGame = (function () {
         //??add a background image???
 
         // Loads game board elements - tilrmap and images
+        this.load.image('background', 'assets/images/generic_bg.png');
         this.load.tilemap('conjurerLevels', 'conjurerLevels.json', null, Phaser.Tilemap.TILED_JSON);
-        this.load.image('wall', 'assets\\images\\wall.png');
+        //this.load.image('wall', 'assets\\images\\wall.png');
+        this.load.image('wall', 'assets\\images\\walltile.png');
         this.load.image('crate', 'assets\\images\\crate.png');
         this.load.image('coin', 'assets\\images\\coin.png');
         this.load.image('key', 'assets\\images\\key.png');
         this.load.image('door', 'assets\\images\\door.png');
         this.load.image('spikes', 'assets\\images\\spikes.png');
 
-        // preloads the player spritesheet with key 'player', width 30, height 32, -1 as
+        // preloads the player spritesheet with key 'player', width 30, h1eight 32, -1 as
         // as the following parameter means that we allow the engine to decide the amount
         // of frames the spritesheet contains; 5px by 5px is the spacing and margin between frames
         this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', CONSTANTS.PLAYER_TILE_WIDTH, CONSTANTS.TILE_SIZE);
@@ -68,7 +70,7 @@ var ConjurerGame = (function () {
 
         // Initiates arcade physics (objects can collide)
         game.physics.startSystem(Phaser.Physics.ARCADE);
-
+        game.add.sprite(0, 0, 'background');
         // Creates the tilemap and the objects on the map using the loaded sources
         levelMap = createLevelMap(game);
         levelLayer = levelMap.createLayer('level' + levelCounter.toString());
