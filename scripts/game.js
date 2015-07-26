@@ -13,23 +13,27 @@ var CONSTANTS = {
     CASTING_TIMEOUT: 300,
     JUMP_VELOCITY_STOPPER: -150,
     PLAYER_HORIZONTAL_STARTING_POSITION: 80,
-    PLAYER_VERTICAL_STARTING_POSITION: 464,
-    PAUSED_TEXT: 'Click to resume game!' 
+    PLAYER_VERTICAL_STARTING_POSITION: 460,
+    PLAYER_STARTING_LIFE_POINTS: 1,
+    PAUSED_TEXT: 'Click to resume game!',
+    PAUSED_TEXT_PLAYER_DIED: 'Oh no, you lost a life point!\nClick to continue!\nLives left: ',
+    GAME_OVER: 'lel, you just died...' 
 };
 
 var ConjurerGame = (function () {
     var player,
-        playerAssets,
-        levelMap,
-        levelLayer,
-        inputController,
-        shadowMask,
-        pauseButton,
-        pausedText,
-        levelCounter = 1,
-        game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame'),
-        ConjurerGame = function (game) {},
-        ConjurerGame2 = function(game) {};
+    time = 0,
+    playerAssets,
+    levelMap,
+    levelLayer,
+    inputController,
+    shadowMask,
+    pauseButton,
+    pausedText,
+    levelCounter = 1,
+    game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame'),
+    ConjurerGame = function (game) {},
+    ConjurerGame2 = function(game) {};
 
     ConjurerGame.prototype = {
         preload: preload,
@@ -128,13 +132,13 @@ var ConjurerGame = (function () {
             switch (tileUnderPlayer.index) {
                 case 2: 
                 case 3: killPlayer();
-                    break;
+                break;
                 case 4: collectCoin();
-                    break;
+                break;
                 case 5: collectKey();
-                    break;
+                break;
                 case 6: tryEnterTheDoor();
-                    break;
+                break;
             }
         }
 
@@ -184,8 +188,9 @@ var ConjurerGame = (function () {
             playerSpeed: CONSTANTS.PLAYER_SPEED,
             coinsCollected: 0,
             hasKey: false,
-            timeElapsed: 0,
-            lifes: 0,
+            placedCrates: 0,
+            timeElapsed: Date.now(),
+            lives: CONSTANTS.PLAYER_STARTING_LIFE_POINTS,
             counterWeight: 0
         };
         return playerAssets;
@@ -218,7 +223,7 @@ var ConjurerGame = (function () {
 
     function placeCrate(pos) {
         var velocityBeforeCast = playerAssets.playerSpeed,
-            facingStateBeforeCast = player.facing;
+        facingStateBeforeCast = player.facing;
 
         // Prevents to put crate over the player
         if (!getCurrentTile(pos.x, pos.y) && !player.body.hitTest(pos.x, pos.y)) {
@@ -235,6 +240,7 @@ var ConjurerGame = (function () {
 
             // Cast the magic
             playerAssets.playerSpeed = 0;
+            playerAssets.placedCrates += 1;
 
             if (velocityBeforeCast > 0) {
                 player.animations.play('cast');
@@ -327,7 +333,7 @@ var ConjurerGame = (function () {
 
     function allowedToJump (direction) {
         var tileDiagonalToPlayer,
-            tileAbovePlayer = getCurrentTile(player.x, player.y - CONSTANTS.TILE_SIZE);
+        tileAbovePlayer = getCurrentTile(player.x, player.y - CONSTANTS.TILE_SIZE);
 
         if (direction === 'left') {
             tileDiagonalToPlayer = getCurrentTile(player.x + CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE);
@@ -385,7 +391,31 @@ var ConjurerGame = (function () {
 
     function killPlayer() {
         // Kill the magician!
+        // game.paused = true;
+        if (playerAssets.lives > 1) {
+            playerAssets.lives -= 1;
+            console.log('Player died, lives left: ' + playerAssets.lives + 
+                ' - coins: ' + playerAssets.coinsCollected + ' - placed crates: ' + playerAssets.placedCrates);
+            respawnPlayer();
+        } else {
+            gameOver();
+        }
+    }
+
+    function respawnPlayer() {
+        player.x = CONSTANTS.PLAYER_HORIZONTAL_STARTING_POSITION;
+        player.y = CONSTANTS.PLAYER_VERTICAL_STARTING_POSITION;
         game.paused = true;
+        pausedText = game.add.text(game.world.centerX, game.world.centerY, CONSTANTS.PAUSED_TEXT_PLAYER_DIED + playerAssets.lives, { font: "25px Impact", fill: "#fff", align: "center" });
+        pausedText.anchor.setTo(0.5); 
+    }
+
+    function gameOver() {
+        //console.log('Time elapsed: ' + (Date.now() - playerAssets.timeElapsed)/1000 + ' seconds!');
+        player.destroy();
+        game.paused = true;
+        pausedText = game.add.text(game.world.centerX, game.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
+        pausedText.anchor.setTo(0.5); 
     }
 
     game.state.add('ConjurerGame', ConjurerGame);
