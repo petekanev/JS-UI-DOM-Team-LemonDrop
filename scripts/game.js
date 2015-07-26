@@ -139,7 +139,7 @@ var ConjurerGame = (function () {
         // parameters are placeholder values until a spritesheet is made
         player.animations.add('left', [0, 1, 2, 3], CONSTANTS.FRAME_RATE, true);
         player.animations.add('right', [4, 5, 6, 7], CONSTANTS.FRAME_RATE, true);
-        player.animations.add('cast', [8], 1, true);
+        player.animations.add('cast', [9], 1, true);
 
         return player;
     }
