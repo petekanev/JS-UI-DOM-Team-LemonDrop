@@ -277,12 +277,12 @@ var ConjurerGame = (function () {
         }
 
         if (inputController.left.isDown) {
-            playerAssets.playerSpeed = -CONSTANTS.SPEED;
+            playerAssets.playerSpeed = -CONSTANTS.PLAYER_SPEED;
             player.animations.play('left');
         }
 
         if (inputController.right.isDown) {
-            playerAssets.playerSpeed = CONSTANTS.SPEED;
+            playerAssets.playerSpeed = CONSTANTS.PLAYER_SPEED;
             player.animations.play('right');
         }
     }
