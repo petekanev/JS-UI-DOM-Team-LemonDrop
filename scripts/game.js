@@ -11,7 +11,7 @@ var CONSTANTS = {
     FRAME_RATE: 5,
     CASTING_TIMEOUT: 200,
     JUMP_VELOCITY_STOPPER: -150,
-    COUNTERWEIGHT_FORCE: 5.3,
+    COUNTERWEIGHT_FORCE: 6,
     PLAYER_HORIZONTAL_STARTING_POSITION: 80,
     PLAYER_VERTICAL_STARTING_POSITION: 460,
     PLAYER_STARTING_LIFE_POINTS: 10,
@@ -122,7 +122,7 @@ var ConjurerGame = (function () {
         var tileUnderPlayer;
         
         if (playerAssets.playerAirborne) {
-            player.body.velocity.x = playerAssets.playerSpeed/2;
+            player.body.velocity.x = playerAssets.playerSpeed/1.5;
         } else {
             player.body.velocity.x = 0;
             playerAssets.counterWeight = 0;
