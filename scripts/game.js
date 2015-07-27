@@ -31,7 +31,7 @@ var ConjurerGame = (function () {
     pausedText,
     bg,
     levelCounter = 1,
-    game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.Canvas, 'ConjurerGame'),
+    game = new Phaser.Game(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT, Phaser.AUTO, 'Game'),
     ConjurerGame = function (game) {};
 
     ConjurerGame.prototype = {
@@ -49,16 +49,16 @@ var ConjurerGame = (function () {
         this.load.image('coin', 'assets/images/coin.png');
         this.load.image('key', 'assets/images/key.png');
         this.load.image('door', 'assets/images/door.png');
-        this.load.image('spikes', 'assets/images/spikes.png');
+        this.load.image('spikes', 'assets/images/spikes1.png');
         this.load.image('pause', 'assets/images/pause.png');
 
         this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', CONSTANTS.PLAYER_TILE_WIDTH, CONSTANTS.TILE_SIZE);
 
         // audio to be loaded for different events within the game
-        // game.load.audio('coinCollect', 'assets\\sounds\\coin.mp3');
-        // game.load.audio('playerDied', 'assets\\sounds\\playerDied.mp3');
-        // game.load.audio('bgMusic', 'assets\\sounds/bgMusic.mp3');
-        // game.load.audio('conjureBox', 'assets\\sounds\\conjureBox.mpc');
+        // game.load.audio('coinCollect', 'assets/sounds/coin.mp3');
+        // game.load.audio('playerDied', 'assets/sounds/playerDied.mp3');
+        // game.load.audio('bgMusic', 'assets/sounds/bgMusic.mp3');
+        // game.load.audio('conjureBox', 'assets/sounds/conjureBox.mpc');
     }
 
 
@@ -67,7 +67,14 @@ var ConjurerGame = (function () {
         // Initiates arcade physics (objects can collide)
         game.physics.startSystem(Phaser.Physics.ARCADE);
         // Loads level maps and passes on the layer (level)
-        levelMaps = createlevelMaps(game);
+        levelMaps = game.add.tilemap('conjurerLevels');
+        levelMaps.addTilesetImage('wall');
+        levelMaps.addTilesetImage('crate');
+        levelMaps.addTilesetImage('spikes');
+        levelMaps.addTilesetImage('coin');
+        levelMaps.addTilesetImage('key');
+        levelMaps.addTilesetImage('door');
+
         levelMaps.setCollision([1, 2], true, 'level3');
         levelMaps.setCollision([1, 2], true, 'level2');
         levelMaps.setCollision([1, 2], true, 'level1');
@@ -106,7 +113,7 @@ var ConjurerGame = (function () {
         crate = null;
         // applies a black mask over the game stage
         setLighting();
-        //redraw pause button sprite, as it is hidden because of the freshly drawn layers of bg and tilemap
+        // redraw pause button sprite, as it is hidden because of the freshly drawn layers of bg and tilemap
         pauseButton = game.add.sprite(8, 8, 'pause');
         
         return levelLayer;
@@ -170,23 +177,8 @@ var ConjurerGame = (function () {
         return player;
     }
 
-    function createlevelMaps(game) {
-        var levelMaps = game.add.tilemap('conjurerLevels');
-        levelMaps.addTilesetImage('wall');
-        levelMaps.addTilesetImage('crate');
-        levelMaps.addTilesetImage('spikes');
-        levelMaps.addTilesetImage('coin');
-        levelMaps.addTilesetImage('key');
-        levelMaps.addTilesetImage('door');
-        // Define which objects are solid - '1' (bricks) and '2' box in the tilemap arrays
-        levelMaps.setCollisionBetween(1, 2);
-
-        return levelMaps;
-    }
-
     function initializePlayerAssets() {
         var playerAssets = {
-            playerState: 'left',
             playerAirborne: false,
             playerSpeed: CONSTANTS.PLAYER_SPEED,
             coinsCollected: 0,
@@ -315,19 +307,19 @@ var ConjurerGame = (function () {
 
         if (player.body.blocked.right && playerAssets.playerSpeed > 0) {
             // performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
-            if (allowedToJump('left')) {
+            if (allowedToJump('right')) {
                 jump();
             } else {
-                player.animations.play('left');
+                player.animations.play('right');
                 playerAssets.playerSpeed *= -1;
             }
         } else if (player.body.blocked.left && playerAssets.playerSpeed < 0) {
             // performs check if tile above and diagonally of the player is empty (according to the tilemap), ignore tile if its a coin or key
-            if (allowedToJump('right')) {
+            if (allowedToJump('left')) {
                 jump();
             }
             else {
-                player.animations.play('right');
+                player.animations.play('left');
                 playerAssets.playerSpeed *= -1;
             }
         }
@@ -337,7 +329,7 @@ var ConjurerGame = (function () {
         var tileDiagonalToPlayer,
         tileAbovePlayer = getCurrentTile(player.x, player.y - CONSTANTS.TILE_SIZE);
 
-        if (direction === 'left') {
+        if (direction === 'right') {
             tileDiagonalToPlayer = getCurrentTile(player.x + CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE);
         } else {
             tileDiagonalToPlayer = getCurrentTile(player.x - CONSTANTS.TILE_SIZE, player.y - CONSTANTS.TILE_SIZE);
@@ -391,11 +383,9 @@ var ConjurerGame = (function () {
         		levelLayer.destroy();
         		// generates a level depending on the level indicator, redraws background, tilemap and light
         		levelLayer = drawLevel();
-        		// swaps background sprite with player sprite, so that the player appears in the front
-        		game.world.swap(bg, player);
-        		// sets player starting positions of the respective level
-            	player.x = CONSTANTS.PLAYER_HORIZONTAL_STARTING_POSITION;
-        		player.y = CONSTANTS.PLAYER_VERTICAL_STARTING_POSITION;
+        		// resets player and re-generates sprites to reduce background not-updating bugging
+        		player.destroy();
+        		player = createPlayer(game);
         	}
         }
     }
@@ -406,7 +396,7 @@ var ConjurerGame = (function () {
 
             console.log('Player died, lives left: ' + playerAssets.lives + 
                 ' - coins: ' + playerAssets.coinsCollected + ' - placed crates: ' + playerAssets.placedCrates);
-            console.log(playerAssets.timeElapsed);
+
             respawnPlayer();
         } else {
             gameOver();
@@ -422,7 +412,6 @@ var ConjurerGame = (function () {
     }
 
     function gameOver() {
-        //console.log('Time elapsed: ' + (Date.now() - playerAssets.timeElapsed)/1000 + ' seconds!');
         player.destroy();
         game.paused = true;
 
@@ -431,9 +420,9 @@ var ConjurerGame = (function () {
 
         pausedText = game.add.text(game.world.centerX, game.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
         pausedText.anchor.setTo(0.5);
-        game.state.start('ConjurerGame'); 
+        game.state.start('Game'); 
     }
 
-    game.state.add('ConjurerGame', ConjurerGame);
-    game.state.start('ConjurerGame');
+    game.state.add('Game', ConjurerGame);
+    game.state.start('Game');
 }());
