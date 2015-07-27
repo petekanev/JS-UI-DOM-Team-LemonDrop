@@ -1,27 +1,5 @@
-//window.onLoad = ConjurerGame;
-
-var CONSTANTS = {
-    TILE_SIZE : 32,
-    PLAYER_TILE_WIDTH: 30,
-    GAME_WIDTH: 1024,
-    GAME_HEIGHT: 512,
-    PLAYER_SPEED: 100,
-    SHADOW_RADIUS: 250,
-    PLAYER_BODY_GRAVITY: 500,
-    FRAME_RATE: 5,
-    CASTING_TIMEOUT: 200,
-    JUMP_VELOCITY_STOPPER: -150,
-    COUNTERWEIGHT_FORCE: 6,
-    PLAYER_HORIZONTAL_STARTING_POSITION: 80,
-    PLAYER_VERTICAL_STARTING_POSITION: 460,
-    PLAYER_STARTING_LIFE_POINTS: 10,
-    AVAILABLE_LEVELS: 3,
-    PAUSED_TEXT: 'Click to resume game!',
-    PAUSED_TEXT_PLAYER_DIED: 'Oh no, you lost a life point!\nClick to continue!\nLives left: ',
-    GAME_OVER: 'lel, you just died...' 
-};
-
-var ConjurerGame = (function () {
+require(['constants', 'uiUpdater'],
+function (CONSTANTS, uiUpdater){
     var player,
     playerAssets,
     levelMaps,
@@ -79,7 +57,13 @@ var ConjurerGame = (function () {
         // Creates player
         player = createPlayer(game);
 
-        playerAssets = initializePlayerAssets();
+        if (levelCounter === 1) {
+            playerAssets = initializePlayerAssets();
+        } else {
+            playerAssets.hasKey = false;
+            playerAssets.playerAirborne = false;
+            playerAssets.counterWeight = 0;
+        }
 
         // Adds events to the game stage
         game.input.onUp.add(placeCrate, game);
@@ -151,6 +135,7 @@ var ConjurerGame = (function () {
         // Character emits light to reveal the map
         lightSprite.reset(game.camera.x, game.camera.y);
         shadowTexture = updateShadowTexture(game, shadowTexture, player);
+        uiUpdater.update(playerAssets);
     }
 
     function createPlayer(game) {
@@ -192,7 +177,7 @@ var ConjurerGame = (function () {
             coinsCollected: 0,
             hasKey: false,
             placedCrates: 0,
-            timeElapsed: 0,
+            startTime: new Date(),
             lives: CONSTANTS.PLAYER_STARTING_LIFE_POINTS,
             counterWeight: 0
         };
@@ -402,6 +387,8 @@ var ConjurerGame = (function () {
 
     function killPlayer() {
         if (playerAssets.lives > 1) {
+            var timeElapsed = uiUpdater.calculateTime(playerAssets.startTime);
+            
             playerAssets.lives -= 1;
 
             console.log('Player died, lives left: ' + playerAssets.lives + 
@@ -422,7 +409,8 @@ var ConjurerGame = (function () {
     }
 
     function gameOver() {
-        //console.log('Time elapsed: ' + (Date.now() - playerAssets.timeElapsed)/1000 + ' seconds!');
+        //var timeElapsed = uiUpdater.calculateTime(playerAssets.startTime);
+        //console.log('Time elapsed: ' + (Date.now() - timeElapsed)/1000 + ' seconds!');
         player.destroy();
         game.paused = true;
 
@@ -436,4 +424,4 @@ var ConjurerGame = (function () {
 
     game.state.add('ConjurerGame', ConjurerGame);
     game.state.start('ConjurerGame');
-}());
+});

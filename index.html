@@ -2,7 +2,11 @@
 <html>
 	<head>
 		<script type="text/javascript" src="scripts/phaser.min.js"></script>
-		<script type="text/javascript" src="scripts/game.js"></script>
+		<!--<script type="text/javascript" src="scripts/game.js"></script>-->
+
+		<script data-main="scripts/game" type="text/javascript" src="scripts/require.js"></script>
+		<!--<script type="text/javascript" src="scripts/game.js"></script>-->
+		<link href='http://fonts.googleapis.com/css?family=Syncopate' rel='stylesheet' type='text/css'>
 		<style type="text/css">
 			@font-face {
 				font-family: ConjurerFont;
@@ -42,12 +46,12 @@
 			}
 			#titleBarContainer #gameStats {
 				display: inline-block;
-				padding: 30px 0px 0px 80px;
+				padding: 30px 0px 0px 60px;
 			}
 
 			#titleBarContainer #gameStats div {
 				display: inline-block;
-				width: 160px;
+				width: 170px;
 			}
 
 			ellipse, circle, rect, line, path {
@@ -61,12 +65,12 @@
 				height: 96px;
 			}
 			#svgCoin {
-				padding-left: 655px;
+				padding-left: 640px;
 				position: absolute;
 				height: 96px;
 			}
 			#svgHeart {
-				padding-left: 545px;
+				padding-left: 520px;
 				position: absolute;
 				transform: scale(.45);
 				top: -7px;
@@ -78,8 +82,8 @@
 				width: 1024px;
 				height: 38px;
 				top: 580px;
-				font-size: 10px;
-				font-family: ConjurerFont, sans-serif;
+				font-size: 12px;
+				font-family: 'Syncopate', sans-serif;
 				color: yellow;
 			}
 		</style>
