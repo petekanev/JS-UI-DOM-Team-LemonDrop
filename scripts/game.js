@@ -1,7 +1,6 @@
 //window.onLoad = ConjurerGame;
 
 var CONSTANTS = {
-    SPEED: 100,
     TILE_SIZE : 32,
     PLAYER_TILE_WIDTH: 30,
     GAME_WIDTH: 1024,
@@ -9,13 +8,13 @@ var CONSTANTS = {
     PLAYER_SPEED: 100,
     SHADOW_RADIUS: 250,
     PLAYER_BODY_GRAVITY: 500,
-    FRAME_RATE: 10,
-    CASTING_TIMEOUT: 300,
+    FRAME_RATE: 5,
     JUMP_VELOCITY_STOPPER: -150,
+    COUNTERWEIGHT_FORCE: 5.3,
     PLAYER_HORIZONTAL_STARTING_POSITION: 80,
     PLAYER_VERTICAL_STARTING_POSITION: 460,
-    PLAYER_STARTING_LIFE_POINTS: 2,
-    AVAILABLE_LEVELS: 2,
+    PLAYER_STARTING_LIFE_POINTS: 10,
+    AVAILABLE_LEVELS: 3,
     PAUSED_TEXT: 'Click to resume game!',
     PAUSED_TEXT_PLAYER_DIED: 'Oh no, you lost a life point!\nClick to continue!\nLives left: ',
     GAME_OVER: 'lel, you just died...' 
@@ -23,7 +22,6 @@ var CONSTANTS = {
 
 var ConjurerGame = (function () {
     var player,
-    time = 0,
     playerAssets,
     levelMaps,
     levelLayer,
@@ -67,9 +65,9 @@ var ConjurerGame = (function () {
     function create() {
         // Initiates arcade physics (objects can collide)
         game.physics.startSystem(Phaser.Physics.ARCADE);
-        items = game.add.group();
         // Loads level maps and passes on the layer (level)
         levelMaps = createlevelMaps(game);
+        levelMaps.setCollision([1, 2], true, 'level3');
         levelMaps.setCollision([1, 2], true, 'level2');
         levelMaps.setCollision([1, 2], true, 'level1');
         levelLayer = drawLevel();
@@ -193,7 +191,7 @@ var ConjurerGame = (function () {
             coinsCollected: 0,
             hasKey: false,
             placedCrates: 0,
-            timeElapsed: Date.now(),
+            timeElapsed: 0,
             lives: CONSTANTS.PLAYER_STARTING_LIFE_POINTS,
             counterWeight: 0
         };
@@ -225,8 +223,7 @@ var ConjurerGame = (function () {
     }
 
     function placeCrate(pos) {
-        var velocityBeforeCast = playerAssets.playerSpeed,
-        facingStateBeforeCast = player.facing;
+        var velocityBeforeCast = playerAssets.playerSpeed;
 
         // Prevents putting crate over the player
         if (!getCurrentTile(pos.x, pos.y) && !player.body.hitTest(pos.x, pos.y)) {
@@ -241,10 +238,6 @@ var ConjurerGame = (function () {
             // Saves placed crate position
             crate = new Phaser.Point(pos.x, pos.y);
 
-            // Cast the magic
-            playerAssets.playerSpeed = 0;
-            playerAssets.placedCrates += 1;
-
             if (velocityBeforeCast > 0) {
                 player.animations.play('cast');
             }
@@ -252,13 +245,6 @@ var ConjurerGame = (function () {
                 player.animations.play('castleft');
             }
             playerAssets.playerState = 'cast';
-
-
-            // Restart the mooving animation
-            setTimeout(function () {
-                playerAssets.playerSpeed = velocityBeforeCast;
-                playerAssets.playerState = facingStateBeforeCast;
-            }, CONSTANTS.CASTING_TIMEOUT);
         }
     }
 
@@ -362,7 +348,7 @@ var ConjurerGame = (function () {
 
     function jump() {
         // setting player vertical velocity
-        player.body.velocity.y = CONSTANTS.JUMP_VELOCITY_STOPPER + playerAssets.counterWeight*2;
+        player.body.velocity.y = CONSTANTS.JUMP_VELOCITY_STOPPER + playerAssets.counterWeight*CONSTANTS.COUNTERWEIGHT_FORCE;
         player.animations.stop();
 
         if (playerAssets.playerSpeed > 0) {
@@ -407,7 +393,7 @@ var ConjurerGame = (function () {
 
             console.log('Player died, lives left: ' + playerAssets.lives + 
                 ' - coins: ' + playerAssets.coinsCollected + ' - placed crates: ' + playerAssets.placedCrates);
-
+            console.log(playerAssets.timeElapsed);
             respawnPlayer();
         } else {
             gameOver();
@@ -431,7 +417,8 @@ var ConjurerGame = (function () {
                 ' - coins: ' + playerAssets.coinsCollected + ' - placed crates: ' + playerAssets.placedCrates);
 
         pausedText = game.add.text(game.world.centerX, game.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
-        pausedText.anchor.setTo(0.5); 
+        pausedText.anchor.setTo(0.5);
+        game.state.start('ConjurerGame'); 
     }
 
     game.state.add('ConjurerGame', ConjurerGame);
