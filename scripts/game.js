@@ -199,22 +199,24 @@ var ConjurerGame = (function () {
         return playerAssets;
     }
 
+
     function updateShadowTexture(game, shadowTexture, player) {
-        var gradient;
+        var gradient,
+            radius = CONSTANTS.SHADOW_RADIUS + game.rnd.integerInRange(1, 10);
 
         shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
         shadowTexture.context.fillRect(0, 0, game.width, game.height);
 
         // Draw circle of light with a soft edge
-        gradient = shadowTexture.context.createRadialGradient(
-        player.x, player.y, 100 * 0.75,
-        player.x, player.y, CONSTANTS.SHADOW_RADIUS);
+        gradient = shadowTexture.context.createRadialGradient (
+            player.x, player.y, 100 * 0.75,
+            player.x, player.y, radius);
         gradient.addColorStop(0, 'rgba(255, 255, 220, 1.0)');
         gradient.addColorStop(1, 'rgba(255, 255, 30, 0.0)');
 
         shadowTexture.context.beginPath();
         shadowTexture.context.fillStyle = gradient;
-        shadowTexture.context.arc(player.x, player.y, CONSTANTS.SHADOW_RADIUS, 0, Math.PI * 2, false);
+        shadowTexture.context.arc(player.x, player.y, radius, 0, Math.PI * 2, false);
         shadowTexture.context.fill();
 
         // This just tells the engine it should update the texture cache
