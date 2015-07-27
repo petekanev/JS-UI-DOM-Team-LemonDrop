@@ -43,17 +43,17 @@ var ConjurerGame = (function () {
 
     function preload() {
         // Loads game board elements - tilrmap and images
-        this.load.image('background', 'assets\\images\\generic_bg.png');
-        this.load.tilemap('conjurerLevels', 'levels\\levels.json', null, Phaser.Tilemap.TILED_JSON);
-        this.load.image('wall', 'assets\\images\\walltile.png');
-        this.load.image('crate', 'assets\\images\\crate.png');
-        this.load.image('coin', 'assets\\images\\coin.png');
-        this.load.image('key', 'assets\\images\\key.png');
-        this.load.image('door', 'assets\\images\\door.png');
-        this.load.image('spikes', 'assets\\images\\spikes.png');
-        this.load.image('pause', 'assets\\images\\pause.png');
+        this.load.image('background', 'assets/images/generic_bg.png');
+        this.load.tilemap('conjurerLevels', 'levels/levels.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.image('wall', 'assets/images/walltile.png');
+        this.load.image('crate', 'assets/images/crate.png');
+        this.load.image('coin', 'assets/images/coin.png');
+        this.load.image('key', 'assets/images/key.png');
+        this.load.image('door', 'assets/images/door.png');
+        this.load.image('spikes', 'assets/images/spikes.png');
+        this.load.image('pause', 'assets/images/pause.png');
 
-        this.load.spritesheet('player', 'assets\\sprites\\wizard_animation.png', CONSTANTS.PLAYER_TILE_WIDTH, CONSTANTS.TILE_SIZE);
+        this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', CONSTANTS.PLAYER_TILE_WIDTH, CONSTANTS.TILE_SIZE);
 
         // audio to be loaded for different events within the game
         // game.load.audio('coinCollect', 'assets\\sounds\\coin.mp3');
