@@ -1,5 +1,4 @@
-//window.onLoad = ConjurerGame;
-
+/*
 var CONSTANTS = {
     TILE_SIZE : 32,
     PLAYER_TILE_WIDTH: 30,
@@ -21,7 +20,9 @@ var CONSTANTS = {
     GAME_OVER: 'lel, you just died...' 
 };
 
-var ConjurerGame = (function () {
+*/
+require(['constants', 'uiUpdater'],
+function (CONSTANTS, uiUpdater){
     var player,
     playerAssets,
     levelMaps,
@@ -158,6 +159,7 @@ var ConjurerGame = (function () {
         // Character emits light to reveal the map
         lightSprite.reset(game.camera.x, game.camera.y);
         shadowTexture = updateShadowTexture(game, shadowTexture, player);
+        uiUpdater.update(playerAssets);
     }
 
     function createPlayer(game) {
@@ -184,7 +186,7 @@ var ConjurerGame = (function () {
             coinsCollected: 0,
             hasKey: false,
             placedCrates: 0,
-            timeElapsed: 0,
+            startTime: new Date(),
             lives: CONSTANTS.PLAYER_STARTING_LIFE_POINTS,
             counterWeight: 0
         };
@@ -386,6 +388,7 @@ var ConjurerGame = (function () {
         		// resets player and re-generates sprites to reduce background not-updating bugging
         		player.destroy();
         		player = createPlayer(game);
+        		playerAssets.hasKey = false;
         	}
         }
     }
@@ -425,4 +428,4 @@ var ConjurerGame = (function () {
 
     game.state.add('Game', ConjurerGame);
     game.state.start('Game');
-}());
+});
