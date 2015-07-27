@@ -9,6 +9,7 @@ var CONSTANTS = {
     SHADOW_RADIUS: 250,
     PLAYER_BODY_GRAVITY: 500,
     FRAME_RATE: 5,
+    CASTING_TIMEOUT: 200,
     JUMP_VELOCITY_STOPPER: -150,
     COUNTERWEIGHT_FORCE: 5.3,
     PLAYER_HORIZONTAL_STARTING_POSITION: 80,
@@ -223,7 +224,8 @@ var ConjurerGame = (function () {
     }
 
     function placeCrate(pos) {
-        var velocityBeforeCast = playerAssets.playerSpeed;
+        var velocityBeforeCast = playerAssets.playerSpeed,
+        	facingStateBeforeCast = player.facing;
 
         // Prevents putting crate over the player
         if (!getCurrentTile(pos.x, pos.y) && !player.body.hitTest(pos.x, pos.y)) {
@@ -238,6 +240,9 @@ var ConjurerGame = (function () {
             // Saves placed crate position
             crate = new Phaser.Point(pos.x, pos.y);
 
+            playerAssets.playerSpeed = 0;
+            playerAssets.placedCrates += 1;
+
             if (velocityBeforeCast > 0) {
                 player.animations.play('cast');
             }
@@ -245,6 +250,12 @@ var ConjurerGame = (function () {
                 player.animations.play('castleft');
             }
             playerAssets.playerState = 'cast';
+        
+            // Restart the mooving animation
+            setTimeout(function () {
+                playerAssets.playerSpeed = velocityBeforeCast;
+                playerAssets.playerState = facingStateBeforeCast;
+            }, CONSTANTS.CASTING_TIMEOUT);
         }
     }
 
