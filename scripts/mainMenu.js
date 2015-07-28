@@ -1,3 +1,6 @@
+var Conjurer = Conjurer || {};
+
+define(function () {
 Conjurer.MainMenu = function(game) { };
 
 Conjurer.MainMenu.prototype = {
@@ -27,3 +30,6 @@ Conjurer.MainMenu.prototype = {
     }
   }
 };
+
+return { MainMenu: Conjurer.MainMenu};
+});

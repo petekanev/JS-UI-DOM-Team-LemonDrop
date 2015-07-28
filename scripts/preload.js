@@ -1,5 +1,6 @@
 var Conjurer = Conjurer || {};
 
+define(function () {
 Conjurer.Preload = function (game) {
   this.splash;
   this.preloadBar;
@@ -40,3 +41,6 @@ Conjurer.Preload.prototype = {
     this.state.start('MainMenu');
   }
 };
+
+return {Preload: Conjurer.Preload};
+});

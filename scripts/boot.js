@@ -1,5 +1,6 @@
 var Conjurer = Conjurer || {};
 
+define(function () {
 Conjurer.Boot = function (game) { };
 
 Conjurer.Boot.prototype = {
@@ -27,3 +28,6 @@ Conjurer.Boot.prototype = {
     this.state.start('Preload');
   }
 };
+
+return {Boot: Conjurer.Boot};
+});
