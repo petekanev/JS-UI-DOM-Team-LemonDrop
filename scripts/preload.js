@@ -17,8 +17,9 @@ Conjurer.Preload.prototype = {
 
     this.load.setPreloadSprite(this.preloadBar);
 
+<<<<<<< HEAD
     // Loads game board elements - tilemap and images
-    this.load.image('background', 'assets/images/generic_bg.png');
+    this.load.image('background', 'assets/images/brick_bg.png');
     this.load.tilemap('conjurerLevels', 'levels/levels.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('wall', 'assets/images/walltile.png');
     this.load.image('crate', 'assets/images/crate.png');
@@ -27,6 +28,21 @@ Conjurer.Preload.prototype = {
     this.load.image('door', 'assets/images/door.png');
     this.load.image('spikes', 'assets/images/spikes1.png');
     this.load.image('pause', 'assets/images/pause.png');
+=======
+  	// load game assets
+  	// Loads game board elements - tilemap and images
+        this.load.image('background', 'assets/images/brick_bg.png');
+        this.load.tilemap('conjurerLevels', 'levels/levels.json', null, Phaser.Tilemap.TILED_JSON);
+        this.load.image('wall', 'assets/images/walltile.png');
+        this.load.image('crate', 'assets/images/crate.png');
+        this.load.image('coin', 'assets/images/coin.png');
+        this.load.image('key', 'assets/images/key.png');
+        this.load.image('door', 'assets/images/door.png');
+        this.load.image('spikes', 'assets/images/spikes1.png');
+        this.load.image('pause', 'assets/images/pause.png');
+        
+        this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', 30, 32);
+>>>>>>> e8c800425443ada4b86fad3f14c5c55827fd9a4d
 
     this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', 30, 32);
 
