@@ -1,7 +1,7 @@
 var Conjurer = Conjurer || {};
 
-require(['game', 'mainMenu', 'boot', 'preload', 'constants', 'uiUpdater'],
-function (Game, MainMenu, Boot, Preload, CONSTNTS, uiUpdater) {
+require(['game', 'mainMenu', 'boot', 'preload'],
+function (Game, MainMenu, Boot, Preload) {
 	var game = new Phaser.Game(1024, 512, Phaser.AUTO, '');
 
 	game.state.add('Boot', Boot.Boot);

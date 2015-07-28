@@ -1,6 +1,6 @@
 var Conjurer = Conjurer || {};
 
-define(['constants', 'uiUpdater'], function (CONSTANTS, uiUpdater) {
+define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tiles) {
 Conjurer.Game = function (game) {
     this.bg;
     this.player;
@@ -79,14 +79,14 @@ Conjurer.Game.prototype = {
 
         if (this.tileUnderPlayer !== null) {
             switch (this.tileUnderPlayer.index) {
-                case 2:
-                case 3: this.killPlayer();
+                case tiles.crate:
+                case tiles.spikes: this.killPlayer();
                     break;
-                case 4: this.collectCoin();
+                case tiles.coin: this.collectCoin();
                     break;
-                case 5: this.collectKey();
+                case tiles.key: this.collectKey();
                     break;
-                case 6: this.tryEnterDoor();
+                case tiles.door: this.tryEnterDoor();
                     break;
             }
         }
@@ -243,10 +243,10 @@ Conjurer.Game.prototype = {
         if (!tileDiagonalToPlayer && !tileAbovePlayer) {
             return true;
         }
-        if (tileAbovePlayer && (tileAbovePlayer.index === 4 || tileAbovePlayer.index === 5)) {
+        if (tileAbovePlayer && (tileAbovePlayer.index === tiles.coin || tileAbovePlayer.index === tiles.key)) {
             return true;
         }
-        if (tileDiagonalToPlayer && (tileDiagonalToPlayer.index === 4 || tileDiagonalToPlayer.index === 5)) {
+        if (tileDiagonalToPlayer && (tileDiagonalToPlayer.index === tiles.coin || tileDiagonalToPlayer.index === tiles.key)) {
             return true;
         }
         if (this.playerAirborne) {
