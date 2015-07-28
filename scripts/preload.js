@@ -19,7 +19,7 @@ Conjurer.Preload.prototype = {
 
   	// load game assets
   	// Loads game board elements - tilemap and images
-        this.load.image('background', 'assets/images/generic_bg.png');
+        this.load.image('background', 'assets/images/brick_bg.png');
         this.load.tilemap('conjurerLevels', 'levels/levels.json', null, Phaser.Tilemap.TILED_JSON);
         this.load.image('wall', 'assets/images/walltile.png');
         this.load.image('crate', 'assets/images/crate.png');
