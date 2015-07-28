@@ -20,6 +20,8 @@ Conjurer.Game = function (game) {
     this.inputController;
     this.pausedText;
     this.pausedButton;
+
+    this.startTime;
 };
 
 // here only temporarily to make sure the game runs
@@ -64,8 +66,8 @@ Conjurer.Game.prototype = {
 
         this.input.onUp.add(this.placeCrate, this);
         this.input.onDown.add(function () {
-            if (this.paused) {
-                this.paused = false;
+            if (this.game.paused) {
+                this.game.paused = false;
                 this.pausedText.destroy();
             }
         }, this);
@@ -73,17 +75,19 @@ Conjurer.Game.prototype = {
 
         this.pauseButton.inputEnabled = true;
         this.pauseButton.events.onInputUp.add(function () {
-            this.paused = true;
+            this.game.paused = true;
             this.pausedText = this.add.text(this.world.centerX,
                 this.world.centerY, CONSTANTS.PAUSED_TEXT,
                 { font: "65px Impact", fill: "#fff", align: "center" });
             this.pausedText.anchor.setTo(0.5);
 
         }, this);
+
+        this.startTime = new Date();
     },
 
     update: function () {
-        if(this.playerAirborne) {
+        if (this.playerAirborne) {
             this.player.body.velocity.x = this.playerSpeed / 1.5;
         } else {
             this.player.body.velocity.x = 0;
@@ -109,14 +113,60 @@ Conjurer.Game.prototype = {
 
         // Applies physics ot the player
         this.physics.arcade.collide(this.player, this.levelLayer, this.move, null, this);
+        
 
         // Character emits light to reveal the map
         this.lightSprite.reset(this.camera.x, this.camera.y);
         this.shadowTexture = this.updateShadowTexture(this.shadowTexture, this.player);
-        //uiUpdater.update(playerAssets);
+        this.uiUpdater.update(this);
     },
 
-    move: function() {
+    uiUpdater: function () {
+        var update = function (props) {
+            var timeElapsed = calculateTime(props.startTime);
+
+            document.getElementById('lifesContainer').innerHTML = props.lives.toString();
+            document.getElementById('scoreContainer').innerHTML = props.coinsCollected.toString();
+            document.getElementById('timeContainer').innerHTML = timeElapsed;
+        };
+
+        var calculateTime = function (startTime) {
+            var now,
+                hh,
+                mm,
+                ss,
+                result;
+            now = new Date();
+
+            hh = now.getHours() - startTime.getHours();
+            mm = now.getMinutes() - startTime.getMinutes();
+            ss = now.getSeconds() - startTime.getSeconds();
+
+            if (ss < 0) {
+                ss += 60;
+                mm -= 1;
+            }
+            if (mm < 0) {
+                mm += 60;
+                hh -= 1;
+            }
+
+            if (hh < 10) { hh = "0" + hh; }
+            if (mm < 10) { mm = "0" + mm; }
+            if (ss < 10) { ss = "0" + ss; }
+
+            result = hh + ":" + mm + ":" + ss;
+
+            return result;
+        };
+
+        return {
+            update: update,
+            calculateTime: calculateTime
+        };
+    } (),
+
+    move: function () {
         this.processKeyboardInput();
         this.processPlayerMovement();
     },
@@ -134,13 +184,13 @@ Conjurer.Game.prototype = {
         return levelLayer;
     },
 
-    setLighting : function() {
+    setLighting: function () {
         this.shadowTexture = this.add.bitmapData(CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
         this.lightSprite = this.add.image(this.camera.x, this.camera.y, this.shadowTexture);
         this.lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
     },
 
-    createPlayer : function() {
+    createPlayer: function () {
         console.log(this);
         console.log('-----------------');
         var player = this.add.sprite(CONSTANTS.PLAYER_HORIZONTAL_STARTING_POSITION, CONSTANTS.PLAYER_VERTICAL_STARTING_POSITION, 'player');
@@ -159,7 +209,7 @@ Conjurer.Game.prototype = {
         return player;
     },
 
-    placeCrate: function(pos) {
+    placeCrate: function (pos) {
         var velocityBeforeCast = this.playerSpeed;
 
         // Prevents putting crate over the player
@@ -190,7 +240,7 @@ Conjurer.Game.prototype = {
         }
     },
 
-    processPlayerMovement: function() {
+    processPlayerMovement: function () {
 
         // Is the player blocked down, that is: is the player on the floor or on the crate?
         if (this.player.body.blocked.down) {
@@ -226,7 +276,7 @@ Conjurer.Game.prototype = {
         }
     },
 
-    processKeyboardInput: function() {
+    processKeyboardInput: function () {
         if (this.inputController.down.isDown) {
             this.player.animations.stop();
             this.player.frame = 4;
@@ -244,7 +294,7 @@ Conjurer.Game.prototype = {
         }
     },
 
-    allowedToJump: function(direction) {
+    allowedToJump: function (direction) {
         var tileDiagonalToPlayer,
             tileAbovePlayer = this.getCurrentTile(this.player.x, this.player.y - CONSTANTS.TILE_SIZE);
 
@@ -270,7 +320,7 @@ Conjurer.Game.prototype = {
         return false;
     },
 
-    jump: function() {
+    jump: function () {
         // setting player vertical velocity
         this.player.body.velocity.y = CONSTANTS.JUMP_VELOCITY_STOPPER + this.counterWeight * CONSTANTS.COUNTERWEIGHT_FORCE;
         this.player.animations.stop();
@@ -285,7 +335,7 @@ Conjurer.Game.prototype = {
         this.counterWeight += 1;
     },
 
-    killPlayer: function() {
+    killPlayer: function () {
         if (this.lives > 1) {
             this.lives -= 1;
 
@@ -298,37 +348,37 @@ Conjurer.Game.prototype = {
         }
     },
 
-    respawnPlayer: function() {
+    respawnPlayer: function () {
         this.player.x = CONSTANTS.PLAYER_HORIZONTAL_STARTING_POSITION;
         this.player.y = CONSTANTS.PLAYER_VERTICAL_STARTING_POSITION;
-        this.paused = true;
+        this.game.paused = true;
         this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.PAUSED_TEXT_PLAYER_DIED + this.lives, { font: "25px Impact", fill: "#fff", align: "center" });
         this.pausedText.anchor.setTo(0.5);
     },
 
-    gameOver: function() {
+    gameOver: function () {
         this.player.destroy();
-        this.paused = true;
+        this.game.paused = true;
 
         console.log('Player died...FOR GOOD THIS TIME!, lives left: ' + this.lives +
             ' - coins: ' + this.coinsCollected + ' - placed crates: ' + this.placedCrates);
 
         this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
         this.pausedText.anchor.setTo(0.5);
-        this.state.start('Game');
+        this.state.start('MainMenu');
     },
 
-    collectCoin: function() {
+    collectCoin: function () {
         this.coinsCollected += 1;
         this.removeTileFromPosition(this.player);
     },
 
-    collectKey: function() {
+    collectKey: function () {
         this.hasKey = true;
         this.removeTileFromPosition(this.player);
     },
 
-    tryEnterDoor: function() {
+    tryEnterDoor: function () {
         if (this.hasKey) {
             this.levelCounter += 1;
             if (this.levelCounter <= CONSTANTS.AVAILABLE_LEVELS) {
@@ -343,7 +393,7 @@ Conjurer.Game.prototype = {
         }
     },
 
-    updateShadowTexture: function(shadowTexture, player) {
+    updateShadowTexture: function (shadowTexture, player) {
         var gradient,
             radius = CONSTANTS.SHADOW_RADIUS;
 
@@ -368,16 +418,16 @@ Conjurer.Game.prototype = {
         return shadowTexture;
     },
 
-    getCurrentTile: function(x, y) {
+    getCurrentTile: function (x, y) {
         var result = this.levelMaps.getTileWorldXY(x, y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, this.levelLayer);
         return result;
     },
 
-    removeTileFromPosition: function(tile) {
+    removeTileFromPosition: function (tile) {
         this.levelMaps.removeTileWorldXY(tile.x, tile.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, this.levelLayer);
     },
 
-    placeTileOnPosition: function(tileType, x, y) {
+    placeTileOnPosition: function (tileType, x, y) {
         this.levelMaps.putTileWorldXY(tileType, x, y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, this.levelLayer);
     }
 
