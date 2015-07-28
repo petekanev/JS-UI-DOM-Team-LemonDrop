@@ -1,21 +1,12 @@
 define(function() {
-	var update = function(playerAssets) {
-		var timeElapsed = calculateTime(playerAssets.startTime);
-
-		document.getElementById('lifesContainer').innerHTML = playerAssets.lives.toString();
-		document.getElementById('scoreContainer').innerHTML = playerAssets.coinsCollected.toString();
-		document.getElementById('timeContainer').innerHTML = timeElapsed;
-	};
-
-	var calculateTime = function(startTime) {
-		var timeElapsedToString,
-			now,
+	var updateTime = function(startTime) {
+		var now,
 			hh,
 			mm,
 			ss,
-			result;
-		now = new Date();
+			timeElapsed;
 		
+		now = new Date();
 		hh = now.getHours() - startTime.getHours();
 		mm = now.getMinutes() - startTime.getMinutes();
 		ss = now.getSeconds() - startTime.getSeconds();
@@ -33,13 +24,27 @@ define(function() {
 		if (mm < 10) {mm = "0" + mm;}
 		if (ss < 10) {ss = "0" + ss;}
 
-		result = hh + ":" + mm + ":" + ss;
+		timeElapsed = hh + ":" + mm + ":" + ss;
 
-		return result;
+		document.getElementById('timeContainer').innerHTML = timeElapsed;
+	};
+
+	var updateScore = function(coinsCollected) {
+		document.getElementById('scoreContainer').innerHTML = coinsCollected.toString();
+	};
+
+	var updateLives = function(lives) {
+		document.getElementById('lifesContainer').innerHTML = lives.toString();
+	};
+
+	var calculateTime = function(startTime) {
+		
 	};
 
 	return {
-		update: update,
+		updateLives: updateLives,
+		updateScore: updateScore,
+		updateTime: updateTime,
 		calculateTime: calculateTime
 	};
 });

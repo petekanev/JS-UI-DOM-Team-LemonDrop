@@ -1,6 +1,6 @@
 var Conjurer = Conjurer || {};
 
-define(['constants'], function (CONSTANTS) {
+define(['constants', 'uiUpdater'], function (CONSTANTS, uiUpdater) {
 Conjurer.Game = function (game) {
     this.bg;
     this.player;
@@ -62,6 +62,8 @@ Conjurer.Game.prototype = {
         }, this);
 
         this.startTime = new Date();
+        uiUpdater.updateLives(this.lives);
+        uiUpdater.updateScore(this.coinsCollected);
     },
 
     update: function () {
@@ -96,53 +98,8 @@ Conjurer.Game.prototype = {
         // Character emits light to reveal the map
         this.lightSprite.reset(this.camera.x, this.camera.y);
         this.shadowTexture = this.updateShadowTexture(this.shadowTexture, this.player);
-        this.uiUpdater.update(this);
+        uiUpdater.updateTime(this.startTime);
     },
-
-    uiUpdater: function () {
-        var update = function (props) {
-            var timeElapsed = calculateTime(props.startTime);
-
-            document.getElementById('lifesContainer').innerHTML = props.lives.toString();
-            document.getElementById('scoreContainer').innerHTML = props.coinsCollected.toString();
-            document.getElementById('timeContainer').innerHTML = timeElapsed;
-        };
-
-        var calculateTime = function (startTime) {
-            var now,
-                hh,
-                mm,
-                ss,
-                result;
-            now = new Date();
-
-            hh = now.getHours() - startTime.getHours();
-            mm = now.getMinutes() - startTime.getMinutes();
-            ss = now.getSeconds() - startTime.getSeconds();
-
-            if (ss < 0) {
-                ss += 60;
-                mm -= 1;
-            }
-            if (mm < 0) {
-                mm += 60;
-                hh -= 1;
-            }
-
-            if (hh < 10) { hh = "0" + hh; }
-            if (mm < 10) { mm = "0" + mm; }
-            if (ss < 10) { ss = "0" + ss; }
-
-            result = hh + ":" + mm + ":" + ss;
-
-            return result;
-        };
-
-        return {
-            update: update,
-            calculateTime: calculateTime
-        };
-    } (),
 
     move: function () {
         this.processKeyboardInput();
@@ -316,7 +273,7 @@ Conjurer.Game.prototype = {
     killPlayer: function () {
         if (this.lives > 1) {
             this.lives -= 1;
-
+            uiUpdater.updateLives(this.lives);
             console.log('Player died, lives left: ' + this.lives +
                 ' - coins: ' + this.coinsCollected + ' - placed crates: ' + this.placedCrates);
 
@@ -348,6 +305,7 @@ Conjurer.Game.prototype = {
 
     collectCoin: function () {
         this.coinsCollected += 1;
+        uiUpdater.updateScore(this.coinsCollected);
         this.removeTileFromPosition(this.player);
     },
 
