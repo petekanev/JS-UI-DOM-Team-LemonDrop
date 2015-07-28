@@ -395,7 +395,7 @@ Conjurer.Game.prototype = {
 
     updateShadowTexture: function (shadowTexture, player) {
         var gradient,
-            radius = CONSTANTS.SHADOW_RADIUS;
+            radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
 
         shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
         shadowTexture.context.fillRect(0, 0, 1024, 512);
