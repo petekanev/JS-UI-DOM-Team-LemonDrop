@@ -259,10 +259,15 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     processKeyboardInput: function () {
         if (this.spaceBar.justDown) {
             if (this.playerSpeed !== 0) {
-                console.log('pesho');
                 this.player.animations.stop();
-                this.player.frame = 8;
                 this.prevSpeed = this.playerSpeed;
+
+                if (this.prevSpeed >= 0) {
+                    this.player.frame = 8;
+                }
+                else {
+                    this.player.frame = 11;
+                }
                 this.playerSpeed = 0;
             } else {
                 this.playerSpeed = this.prevSpeed;
