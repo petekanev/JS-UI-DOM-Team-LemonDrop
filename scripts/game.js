@@ -339,6 +339,23 @@ Conjurer.Game.prototype = {
         console.log('Player died...FOR GOOD THIS TIME!, lives left: ' + this.lives +
             ' - coins: ' + this.coinsCollected + ' - placed crates: ' + this.placedCrates);
 
+        var localScore = localStorage.getItem('ConjurerScore');
+        var currentHighScore; 
+
+        if (localScore) {
+            currentHighScore = localScore || 0;
+            if (currentHighScore * 1 < this.coinsCollected) {
+                currentHighScore = this.coinsCollected.toString();
+                localStorage.setItem('ConjurerScore', currentHighScore);               
+            }
+        }
+        else {
+            currentHighScore = this.coinsCollected.toString();
+            localStorage.setItem('ConjurerScore', currentHighScore);
+        }
+        var scoreText = this.add.text(this.world.centerX, this.world.centerY - 100, 'Highscore: ' + currentHighScore, { font: "25px Impact", fill: "#fff", align: "center" });
+        scoreText.anchor.setTo(0.5);
+
         this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
         this.pausedText.anchor.setTo(0.5);
         this.state.start('Game');
