@@ -4,12 +4,12 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 Conjurer.Game = function (game) {
     this.bg;
     this.player;
-    this.levelCounter = 1;
+    this.levelCounter;
     this.crate = null;
     this.playerAirborne = false;
     this.hasKey = false;
-    this.coinsCollected = 0;
-    this.placedCrates = 0;
+    this.coinsCollected;
+    this.placedCrates;
     this.playerSpeed = CONSTANTS.PLAYER_SPEED;
     this.lives = CONSTANTS.PLAYER_STARTING_LIFE_POINTS;
     this.counterWeight = 0;
@@ -26,6 +26,10 @@ Conjurer.Game = function (game) {
 
 Conjurer.Game.prototype = {
     create: function () {
+        this.coinsCollected = 0;
+        this.levelCounter = 1;
+        this.placedCrates = 0;
+
         this.levelMaps = this.add.tilemap('conjurerLevels');
         this.levelMaps.addTilesetImage('wall');
         this.levelMaps.addTilesetImage('crate');
@@ -304,7 +308,7 @@ Conjurer.Game.prototype = {
 
         this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
         this.pausedText.anchor.setTo(0.5);
-        this.state.start('MainMenu');
+        this.state.start('Game');
     },
 
     collectCoin: function () {
