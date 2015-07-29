@@ -1,83 +1,87 @@
 var Conjurer = Conjurer || {};
 
 define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tiles) {
-Conjurer.Game = function (game) {
-    this.bg;
-    this.player;
-    this.enemy;
-    this.levelCounter;
-    this.crate = null;
-    this.playerAirborne = false;
-    this.hasKey = false;
-    this.coinsCollected;
-    this.placedCrates;
-    this.playerSpeed = CONSTANTS.PLAYER_SPEED;
-    this.lives = CONSTANTS.PLAYER_STARTING_LIFE_POINTS;
-    this.counterWeight = 0;
-    this.shadowTexture;
-    this.lightSprite;
-    this.tileUnderPlayer;
-    this.levelMaps;
-    this.levelLayer;
-    this.inputController;
-    this.pausedText;
-    this.pausedButton;
-    this.startTime;
-};
+    Conjurer.Game = function (game) {
+        this.bg;
+        this.player;
+        this.enemy;
+        this.levelCounter;
+        this.crate = null;
+        this.playerAirborne = false;
+        this.playerHasKey = false;
+        this.playerCoinsCollected;
+        this.playerPlacedCrates;
+        this.playerSpeed = CONSTANTS.PLAYER_SPEED;
+        this.playerLives = CONSTANTS.PLAYER_STARTING_LIFE_POINTS;
+        this.playerCounterWeight = 0;
+        this.shadowTexture;
+        this.lightSprite;
+        this.tileUnderPlayer;
+        this.levelMaps;
+        this.levelLayer;
+        this.inputController;
+        this.pausedText;
+        this.pausedButton;
+        this.startTime;
+        this.prevSpeed;    
+        this.spaceBar;
+    };
 
-Conjurer.Game.prototype = {
-    create: function () {
-        this.coinsCollected = 0;
-        this.levelCounter = 1;
-        this.placedCrates = 0;
+    Conjurer.Game.prototype = {
+        create: function () {
+            this.playerCoinsCollected = 0;
+            this.levelCounter = 1;
+            this.playerPlacedCrates = 0;
 
-        this.levelMaps = this.add.tilemap('conjurerLevels');
-        this.levelMaps.addTilesetImage('wall');
-        this.levelMaps.addTilesetImage('crate');
-        this.levelMaps.addTilesetImage('spikes');
-        this.levelMaps.addTilesetImage('coin');
-        this.levelMaps.addTilesetImage('key');
-        this.levelMaps.addTilesetImage('door');
+            this.levelMaps = this.add.tilemap('conjurerLevels');
+            this.levelMaps.addTilesetImage('wall');
+            this.levelMaps.addTilesetImage('crate');
+            this.levelMaps.addTilesetImage('spikes');
+            this.levelMaps.addTilesetImage('coin');
+            this.levelMaps.addTilesetImage('key');
+            this.levelMaps.addTilesetImage('door');
 
-        this.levelMaps.setCollision([1, 2], true, 'level1');
-        this.levelMaps.setCollision([1, 2], true, 'level2');
-        this.levelMaps.setCollision([1, 2], true, 'level3');
-        this.levelLayer = this.drawLevel();
-        this.inputController = this.input.keyboard.createCursorKeys();
+            this.levelMaps.setCollision([1, 2], true, 'level1');
+            this.levelMaps.setCollision([1, 2], true, 'level2');
+            this.levelMaps.setCollision([1, 2], true, 'level3');
+            this.levelLayer = this.drawLevel();
+            // this.inputController = this.input.keyboard.createCursorKeys();
+            this.spaceBar = this.game.input.keyboard.addKey(32);
 
-        this.player = this.createPlayer();
 
-        this.input.onUp.add(this.placeCrate, this);
-        this.input.onDown.add(function () {
-            if (this.game.paused) {
-                this.game.paused = false;
-                this.pausedText.destroy();
+            this.player = this.createPlayer();
+
+            this.input.onUp.add(this.placeCrate, this);
+            this.input.onDown.add(function () {
+                if (this.game.paused) {
+                    this.game.paused = false;
+                    this.pausedText.destroy();
+                }
+            }, this);
+
+
+            this.pauseButton.inputEnabled = true;
+            this.pauseButton.events.onInputUp.add(function () {
+                this.game.paused = true;
+                this.pausedText = this.add.text(this.world.centerX,
+                    this.world.centerY, CONSTANTS.PAUSED_TEXT,
+                    { font: "65px Impact", fill: "#fff", align: "center" });
+                this.pausedText.anchor.setTo(0.5);
+
+            }, this);
+
+            this.startTime = new Date();
+            uiUpdater.updateLives(this.playerLives);
+            uiUpdater.updateScore(this.playerCoinsCollected);
+        },
+
+        update: function () {
+            if (this.playerAirborne) {
+                this.player.body.velocity.x = this.playerSpeed / 1.5;
+            } else {
+                this.player.body.velocity.x = 0;
+                this.playerCounterWeight = 0;
             }
-        }, this);
-
-
-        this.pauseButton.inputEnabled = true;
-        this.pauseButton.events.onInputUp.add(function () {
-            this.game.paused = true;
-            this.pausedText = this.add.text(this.world.centerX,
-                this.world.centerY, CONSTANTS.PAUSED_TEXT,
-                { font: "65px Impact", fill: "#fff", align: "center" });
-            this.pausedText.anchor.setTo(0.5);
-
-        }, this);
-
-        this.startTime = new Date();
-        uiUpdater.updateLives(this.lives);
-        uiUpdater.updateScore(this.coinsCollected);
-    },
-
-    update: function () {
-        if (this.playerAirborne) {
-            this.player.body.velocity.x = this.playerSpeed / 1.5;
-        } else {
-            this.player.body.velocity.x = 0;
-            this.counterWeight = 0;
-        }
 
         // check for collision between the player and the level, and call "movePlayer" if there's a collision
         this.tileUnderPlayer = this.levelMaps.getTileWorldXY(this.player.x, this.player.y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, this.levelLayer);
@@ -86,13 +90,13 @@ Conjurer.Game.prototype = {
             switch (this.tileUnderPlayer.index) {
                 case tiles.crate:
                 case tiles.spikes: this.killPlayer();
-                    break;
+                break;
                 case tiles.coin: this.collectCoin();
-                    break;
+                break;
                 case tiles.key: this.collectKey();
-                    break;
+                break;
                 case tiles.door: this.tryEnterDoor();
-                    break;
+                break;
             }
         }
 
@@ -198,7 +202,7 @@ Conjurer.Game.prototype = {
             this.crate = new Phaser.Point(pos.x, pos.y);
 
             this.playerSpeed = 0;
-            //this.placedCrates += 1;
+            //this.playerPlacedCrates += 1;
 
             if (velocityBeforeCast >= 0) {
                 this.player.animations.play('cast');
@@ -253,12 +257,19 @@ Conjurer.Game.prototype = {
     },
 
     processKeyboardInput: function () {
-        if (this.inputController.down.isDown) {
-            this.player.animations.stop();
-            this.player.frame = 8;
-            this.playerSpeed = 0;
+        if (this.spaceBar.justDown) {
+            if (this.playerSpeed !== 0) {
+                console.log('pesho');
+                this.player.animations.stop();
+                this.player.frame = 8;
+                this.prevSpeed = this.playerSpeed;
+                this.playerSpeed = 0;
+            } else {
+                this.playerSpeed = this.prevSpeed;
+            }
         }
 
+        /*
         if (this.inputController.left.isDown) {
             this.playerSpeed = -CONSTANTS.PLAYER_SPEED;
             this.player.animations.play('left');
@@ -268,11 +279,12 @@ Conjurer.Game.prototype = {
             this.playerSpeed = CONSTANTS.PLAYER_SPEED;
             this.player.animations.play('right');
         }
+        */
     },
 
     allowedToJump: function (direction) {
         var tileDiagonalToPlayer,
-            tileAbovePlayer = this.getCurrentTile(this.player.x, this.player.y - CONSTANTS.TILE_SIZE);
+        tileAbovePlayer = this.getCurrentTile(this.player.x, this.player.y - CONSTANTS.TILE_SIZE);
 
         if (direction === 'right') {
             tileDiagonalToPlayer = this.getCurrentTile(this.player.x + CONSTANTS.TILE_SIZE, this.player.y - CONSTANTS.TILE_SIZE);
@@ -298,7 +310,7 @@ Conjurer.Game.prototype = {
 
     jump: function () {
         // setting player vertical velocity
-        this.player.body.velocity.y = CONSTANTS.JUMP_VELOCITY_STOPPER + this.counterWeight * CONSTANTS.COUNTERWEIGHT_FORCE;
+        this.player.body.velocity.y = CONSTANTS.JUMP_VELOCITY_STOPPER + this.playerCounterWeight * CONSTANTS.COUNTERWEIGHT_FORCE;
         this.player.animations.stop();
 
         if (this.playerSpeed > 0) {
@@ -308,15 +320,15 @@ Conjurer.Game.prototype = {
         }
 
         this.playerAirborne = true;
-        this.counterWeight += 1;
+        this.playerCounterWeight += 1;
     },
 
     killPlayer: function () {
-        if (this.lives > 1) {
-            this.lives -= 1;
-            uiUpdater.updateLives(this.lives);
-            console.log('Player died, lives left: ' + this.lives +
-                ' - coins: ' + this.coinsCollected + ' - placed crates: ' + this.placedCrates);
+        if (this.playerLives > 1) {
+            this.playerLives -= 1;
+            uiUpdater.updateLives(this.playerLives);
+            console.log('Player died, lives left: ' + this.playerLives +
+                ' - coins: ' + this.playerCoinsCollected + ' - placed crates: ' + this.playerPlacedCrates);
 
             this.respawnPlayer();
         } else {
@@ -328,52 +340,55 @@ Conjurer.Game.prototype = {
         this.player.x = CONSTANTS.PLAYER_HORIZONTAL_STARTING_POSITION;
         this.player.y = CONSTANTS.PLAYER_VERTICAL_STARTING_POSITION;
         this.game.paused = true;
-        this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.PAUSED_TEXT_PLAYER_DIED + this.lives, { font: "25px Impact", fill: "#fff", align: "center" });
+        this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.PAUSED_TEXT_PLAYER_DIED + this.playerLives, { font: "25px Impact", fill: "#fff", align: "center" });
         this.pausedText.anchor.setTo(0.5);
     },
 
     gameOver: function () {
-        this.player.destroy();
         this.game.paused = true;
 
-        console.log('Player died...FOR GOOD THIS TIME!, lives left: ' + this.lives +
-            ' - coins: ' + this.coinsCollected + ' - placed crates: ' + this.placedCrates);
+        console.log('Player died...FOR GOOD THIS TIME!, lives left: ' + this.playerLives +
+            ' - coins: ' + this.playerCoinsCollected + ' - placed crates: ' + this.playerPlacedCrates);
 
-        var localScore = localStorage.getItem('ConjurerScore');
-        var currentHighScore; 
-
-        if (localScore) {
-            currentHighScore = localScore || 0;
-            if (currentHighScore * 1 < this.coinsCollected) {
-                currentHighScore = this.coinsCollected.toString();
-                localStorage.setItem('ConjurerScore', currentHighScore);               
-            }
-        }
-        else {
-            currentHighScore = this.coinsCollected.toString();
-            localStorage.setItem('ConjurerScore', currentHighScore);
-        }
-        var scoreText = this.add.text(this.world.centerX, this.world.centerY - 100, 'Highscore: ' + currentHighScore, { font: "25px Impact", fill: "#fff", align: "center" });
-        scoreText.anchor.setTo(0.5);
+        this.getHighScore();
 
         this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
         this.pausedText.anchor.setTo(0.5);
         this.state.start('Game');
     },
 
+    getHighScore: function() {
+        var localScore = localStorage.getItem('ConjurerScore');
+        var currentHighScore; 
+
+        if (localScore) {
+            currentHighScore = localScore || 0;
+            if (currentHighScore * 1 < this.playerCoinsCollected) {
+                currentHighScore = this.playerCoinsCollected.toString();
+                localStorage.setItem('ConjurerScore', currentHighScore);               
+            }
+        }
+        else {
+            currentHighScore = this.playerCoinsCollected.toString();
+            localStorage.setItem('ConjurerScore', currentHighScore);
+        }
+        var scoreText = this.add.text(this.world.centerX, this.world.centerY - 100, 'Highscore: ' + currentHighScore, { font: "25px Impact", fill: "#fff", align: "center" });
+        scoreText.anchor.setTo(0.5);
+    },
+
     collectCoin: function () {
-        this.coinsCollected += 1;
-        uiUpdater.updateScore(this.coinsCollected);
+        this.playerCoinsCollected += 1;
+        uiUpdater.updateScore(this.playerCoinsCollected);
         this.removeTileFromPosition(this.player);
     },
 
     collectKey: function () {
-        this.hasKey = true;
+        this.playerHasKey = true;
         this.removeTileFromPosition(this.player);
     },
 
     tryEnterDoor: function () {
-        if (this.hasKey) {
+        if (this.playerHasKey) {
             this.levelCounter += 1;
             if (this.levelCounter <= CONSTANTS.AVAILABLE_LEVELS) {
                 this.levelLayer.destroy();
@@ -382,14 +397,14 @@ Conjurer.Game.prototype = {
                 // resets player and re-generates sprites to reduce background not-updating bugging
                 this.player.destroy();
                 this.player = this.createPlayer(this);
-                this.hasKey = false;
+                this.playerHasKey = false;
             }
         }
     },
 
     updateShadowTexture: function (shadowTexture, player) {
         var gradient,
-            radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
+        radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
 
         shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
         shadowTexture.context.fillRect(0, 0, 1024, 512);
