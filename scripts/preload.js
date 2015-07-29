@@ -27,6 +27,7 @@ Conjurer.Preload.prototype = {
     this.load.image('door', 'assets/images/door.png');
     this.load.image('spikes', 'assets/images/spikes1.png');
     this.load.image('pause', 'assets/images/pause.png');
+    this.load.image('enemy', 'assets/images/fire.png');
 
     this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', 30, 32);
 

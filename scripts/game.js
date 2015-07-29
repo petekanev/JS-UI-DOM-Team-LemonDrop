@@ -4,6 +4,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 Conjurer.Game = function (game) {
     this.bg;
     this.player;
+    this.enemy;
     this.levelCounter;
     this.crate = null;
     this.playerAirborne = false;
@@ -97,12 +98,30 @@ Conjurer.Game.prototype = {
 
         // Applies physics ot the player
         this.physics.arcade.collide(this.player, this.levelLayer, this.move, null, this);
-        
+
+        // Checks if player and enemy current positions overlap
+        if(this.enemy) {
+            if(this.crate) {
+                if (this.boxOverlap(this.enemy, this.crate)) {
+                    this.removeTileFromPosition(this.crate);
+                    this.crate = null;
+                }
+            }
+
+            this.physics.arcade.overlap(this.player, this.enemy, this.killPlayer, null, this);
+        }
 
         // Character emits light to reveal the map
         this.lightSprite.reset(this.camera.x, this.camera.y);
         this.shadowTexture = this.updateShadowTexture(this.shadowTexture, this.player);
         uiUpdater.updateTime(this.startTime);
+    },
+
+    boxOverlap: function(a, b) {
+        var a = this.enemy.getBounds();
+        var b = new Phaser.Rectangle(this.crate.x, this.crate.y, 32, 32);
+
+        return Phaser.Rectangle.intersects(a, b);
     },
 
     move: function () {
@@ -115,6 +134,11 @@ Conjurer.Game.prototype = {
         var levelLayer = this.levelMaps.createLayer('level' + this.levelCounter.toString());
         // resets crate placed by the conjurer
         this.crate = null;
+
+        if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter - 1]){
+            this.enemy = this.createEnemy(this);
+        }
+
         // applies a black mask over the game stage
         this.setLighting();
         // redraw pause button sprite, as it is hidden because of the freshly drawn layers of bg and tilemap
@@ -146,6 +170,15 @@ Conjurer.Game.prototype = {
         player.animations.add('castleft', [10], 1, true);
 
         return player;
+    },
+
+    createEnemy: function () {
+        var enemy = this.add.sprite(CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter - 1].x, CONSTANTS.ENEMY_MOVE_TO[this.levelCounter - 1].y, 'enemy');
+        enemy.anchor.setTo(0.5, 0.5);
+        this.physics.enable(enemy, Phaser.Physics.ARCADE);
+        this.add.tween(enemy).to({x: CONSTANTS.ENEMY_MOVE_TO[this.levelCounter - 1].x}, 3000, Phaser.Easing.Linear.None, true, 0, -1, true);
+
+        return enemy;
     },
 
     placeCrate: function (pos) {
