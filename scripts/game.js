@@ -12,7 +12,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         this.playerCoinsCollected;
         this.playerPlacedCrates;
         this.playerSpeed = CONSTANTS.PLAYER_SPEED;
-        this.playerLives = CONSTANTS.PLAYER_STARTING_LIFE_POINTS;
+        this.playerLives;
         this.playerCounterWeight = 0;
         this.shadowTexture;
         this.lightSprite;
@@ -25,13 +25,15 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         this.startTime;
         this.prevSpeed;    
         this.spaceBar;
+        this.localScore;
     };
 
     Conjurer.Game.prototype = {
         create: function () {
-            this.playerCoinsCollected = 0;
             this.levelCounter = 1;
+            this.playerCoinsCollected = 0;
             this.playerPlacedCrates = 0;
+            this.playerLives = CONSTANTS.PLAYER_STARTING_LIFE_POINTS;
 
             this.levelMaps = this.add.tilemap('conjurerLevels');
             this.levelMaps.addTilesetImage('wall');
@@ -45,9 +47,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
             this.levelMaps.setCollision([1, 2], true, 'level2');
             this.levelMaps.setCollision([1, 2], true, 'level3');
             this.levelLayer = this.drawLevel();
-            // this.inputController = this.input.keyboard.createCursorKeys();
             this.spaceBar = this.game.input.keyboard.addKey(32);
-
 
             this.player = this.createPlayer();
 
@@ -59,7 +59,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
                 }
             }, this);
 
-
             this.pauseButton.inputEnabled = true;
             this.pauseButton.events.onInputUp.add(function () {
                 this.game.paused = true;
@@ -67,7 +66,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
                     this.world.centerY, CONSTANTS.PAUSED_TEXT,
                     { font: "65px Impact", fill: "#fff", align: "center" });
                 this.pausedText.anchor.setTo(0.5);
-
             }, this);
 
             this.startTime = new Date();
@@ -104,8 +102,8 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         this.physics.arcade.collide(this.player, this.levelLayer, this.move, null, this);
 
         // Checks if player and enemy current positions overlap
-        if(this.enemy) {
-            if(this.crate) {
+        if (this.enemy) {
+            if (this.crate) {
                 if (this.boxOverlap(this.enemy, this.crate)) {
                     this.removeTileFromPosition(this.crate);
                     this.crate = null;
@@ -123,9 +121,9 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
     boxOverlap: function(a, b) {
         var a = this.enemy.getBounds();
-        var b = new Phaser.Rectangle(this.crate.x, this.crate.y, 32, 32);
+        var b = new Phaser.Rectangle(this.crate.x-16, this.crate.y, 24, 32);
 
-        return Phaser.Rectangle.intersects(a, b);
+        return Phaser.Rectangle.intersects(b, a);
     },
 
     move: function () {
@@ -139,7 +137,8 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         // resets crate placed by the conjurer
         this.crate = null;
 
-        if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter - 1]){
+        // creates enemy flames from an array
+        if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter - 1]) {
             this.enemy = this.createEnemy(this);
         }
 
@@ -158,8 +157,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     },
 
     createPlayer: function () {
-        console.log(this);
-        console.log('-----------------');
         var player = this.add.sprite(CONSTANTS.PLAYER_HORIZONTAL_STARTING_POSITION, CONSTANTS.PLAYER_VERTICAL_STARTING_POSITION, 'player');
         // sets the anchor of the player object to the middle of the picture
         player.anchor.setTo(0.5, 0.5);
@@ -202,7 +199,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
             this.crate = new Phaser.Point(pos.x, pos.y);
 
             this.playerSpeed = 0;
-            //this.playerPlacedCrates += 1;
+            this.playerPlacedCrates += 1;
 
             if (velocityBeforeCast >= 0) {
                 this.player.animations.play('cast');
@@ -273,18 +270,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
                 this.playerSpeed = this.prevSpeed;
             }
         }
-
-        /*
-        if (this.inputController.left.isDown) {
-            this.playerSpeed = -CONSTANTS.PLAYER_SPEED;
-            this.player.animations.play('left');
-        }
-
-        if (this.inputController.right.isDown) {
-            this.playerSpeed = CONSTANTS.PLAYER_SPEED;
-            this.player.animations.play('right');
-        }
-        */
     },
 
     allowedToJump: function (direction) {
@@ -332,8 +317,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         if (this.playerLives > 1) {
             this.playerLives -= 1;
             uiUpdater.updateLives(this.playerLives);
-            console.log('Player died, lives left: ' + this.playerLives +
-                ' - coins: ' + this.playerCoinsCollected + ' - placed crates: ' + this.playerPlacedCrates);
 
             this.respawnPlayer();
         } else {
@@ -352,9 +335,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     gameOver: function () {
         this.game.paused = true;
 
-        console.log('Player died...FOR GOOD THIS TIME!, lives left: ' + this.playerLives +
-            ' - coins: ' + this.playerCoinsCollected + ' - placed crates: ' + this.playerPlacedCrates);
-
         this.getHighScore();
 
         this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
@@ -363,11 +343,11 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     },
 
     getHighScore: function() {
-        var localScore = localStorage.getItem('ConjurerScore');
+        this.localScore = localStorage.getItem('ConjurerScore');
         var currentHighScore; 
 
-        if (localScore) {
-            currentHighScore = localScore || 0;
+        if (this.localScore) {
+            currentHighScore = this.localScore || 0;
             if (currentHighScore * 1 < this.playerCoinsCollected) {
                 currentHighScore = this.playerCoinsCollected.toString();
                 localStorage.setItem('ConjurerScore', currentHighScore);               
@@ -412,7 +392,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
 
         shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
-        shadowTexture.context.fillRect(0, 0, 1024, 512);
+        shadowTexture.context.fillRect(0, 0, CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
 
         // Draw circle of light with a soft edge
         gradient = shadowTexture.context.createRadialGradient(
