@@ -160,18 +160,22 @@ Conjurer.Game.prototype = {
             // Saves placed crate position
             this.crate = new Phaser.Point(pos.x, pos.y);
 
-            //this.playerSpeed = 0;
-            this.placedCrates += 1;
+            this.playerSpeed = 0;
+            //this.placedCrates += 1;
 
-            if (velocityBeforeCast > 0) {
+            if (velocityBeforeCast >= 0) {
                 this.player.animations.play('cast');
             }
             else {
                 this.player.animations.play('castleft');
             }
 
+            //Save the 'this' context to a variable
+            var that = this;
             // Restart the mooving animation
-
+            setTimeout(function() {
+                that.playerSpeed = velocityBeforeCast;
+            }, CONSTANTS.CASTING_TIMEOUT);
         }
     },
 
@@ -214,7 +218,7 @@ Conjurer.Game.prototype = {
     processKeyboardInput: function () {
         if (this.inputController.down.isDown) {
             this.player.animations.stop();
-            this.player.frame = 4;
+            this.player.frame = 8;
             this.playerSpeed = 0;
         }
 
