@@ -30,9 +30,10 @@ Conjurer.Preload.prototype = {
     this.load.image('spikes', 'assets/images/spikes1.png');
     this.load.image('pause', 'assets/images/pause.png');
     this.load.image('sound', 'assets/images/sound.png');
-    this.load.image('enemy', 'assets/images/fire.png');
+    //this.load.image('enemy', 'assets/images/fire.png');
     this.load.image('playButton', 'assets/images/playButton.png');
 
+    this.load.spritesheet('enemy', 'assets/sprites/flame_animation.png', 30, 32);
     this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', 30, 32);
 
     // audio to be loaded for different events within the game

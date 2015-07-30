@@ -153,6 +153,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         // creates enemy flames from an array
         if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter % CONSTANTS.AVAILABLE_LEVELS]) {
             this.enemy = this.createEnemy(this);
+            this.enemy.animations.play('burn');
         }
 
         // applies a black mask over the game stage
@@ -192,7 +193,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         enemy.anchor.setTo(0.5, 0.5);
         this.physics.enable(enemy, Phaser.Physics.ARCADE);
         this.add.tween(enemy).to({x: CONSTANTS.ENEMY_MOVE_TO[this.levelCounter % CONSTANTS.AVAILABLE_LEVELS].x}, 3000, Phaser.Easing.Linear.None, true, 0, -1, true);
-
+        enemy.animations.add('burn', [0, 1, 2], CONSTANTS.FRAME_RATE, true);
         return enemy;
     },
 
