@@ -1,22 +1,21 @@
 var Conjurer = Conjurer || {};
 
-define(function () {
+define(['constants'], function (CONSTANTS) {
 Conjurer.MainMenu = function(game) { };
 
 Conjurer.MainMenu.prototype = {
   create: function() {
-  	//show the space tile, repeated
-    //this.background = this.add.tileSprite(0, 0, 1024, 512, 'wall');
     this.stage.setBackgroundColor(0x483F32);
-    //give it speed in x
-   // this.background.autoScroll(-20, 0);
+    this.add.sprite(0, 0, 'background');
 
-    //start game text
-    var text = "Conjurer Puzzle Game";
-    var style = { font: "50px 'Harrington'", fill: "#fff", align: "center" };
-    var t = this.add.text(1024/2, 100, text, style);
-    t.anchor.set(0.5);
-    
+    this.generateBg();
+    this.animateTitle();
+
+    this.playButton = this.add.button((CONSTANTS.GAME_WIDTH/2)-64, 326, 'playButton', this.startGame, this);
+
+    this.howTo = this.add.button((CONSTANTS.GAME_WIDTH/2)-64, 390, 'howTo', this.startHowTo, this);
+  },
+  generateBg: function() {
     var gems = this.add.group();
 
     for(var i = 0; i < 50; i+=1){
@@ -27,28 +26,31 @@ Conjurer.MainMenu.prototype = {
     gems.forEach(function (child) {
       var tween = that.add.tween(child).to({alpha: 1}, 1000+that.rnd.integerInRange(0, 2000), "Linear", true, 0, -1);
       tween.yoyo(true, 1000);
-    }, this)
-
-    //highest score
-    //text = "Highest score: " + this.highestScore;
-    //style = { font: "15px Arial", fill: "#fff", align: "center" };
-  
-    //var h = this.add.text(1024/2, 512/2 + 50, text, style);
-    //h.anchor.set(0.5);
-    this.playButton = this.add.button(512-64, 256, 'playButton', this.startGame, this);
-
-    this.howTo = this.add.button(512-64, 320, 'howTo', this.startHowTo, this);
+    }, this);
   },
-  update: function() {
-    // if (this.input.activePointer.justPressed()) {
-    //   this.state.start('Game');
-    // }
+
+  animateTitle: function () {
+    var title = this.add.sprite(CONSTANTS.GAME_WIDTH/2, (CONSTANTS.GAME_HEIGHT/2)-150, 'title');
+    title.anchor.setTo(0.5);
+    title.scale.set(1.4);
+    title.alpha = 0;
+
+    var wizzard = this.add.sprite(100, 250, 'player');
+    wizzard.anchor.setTo(0.5);
+    wizzard.scale.setTo(3);
+    wizzard.animations.add('right', [4, 5, 6, 7], CONSTANTS.FRAME_RATE, true);
+    wizzard.animations.add('cast', [9], 1, true);
+    wizzard.animations.play('right');
+    this.add.tween(wizzard).to({x: 512}, 4000, Phaser.Easing.Linear.None, true, 0, 0, false);
+
+    var that = this;
+    setTimeout(function() {
+      wizzard.animations.play('cast');
+      that.add.tween(title).to({alpha: 1}, 3000, "Linear", true, 0, 0);
+    }, 4000);
   },
+
   startGame: function (pointer) {
-
-    // this.music.stop();
-
-    //  And start the actual game
     this.state.start('Game');
 
   },

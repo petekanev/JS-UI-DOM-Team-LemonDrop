@@ -8,17 +8,6 @@ Conjurer.Preload = function (game) {
 
 Conjurer.Preload.prototype = {
   preload: function () {
-    //show logo in loading screen
-    /*
-    this.splash = this.add.sprite(this.world.centerX, this.world.centerY, 'logo');
-    this.splash.anchor.setTo(0.5);
-
-    this.preloadBar = this.add.sprite(this.world.centerX, this.world.centerY + 128, 'preloadbar');
-    this.preloadBar.anchor.setTo(0.5);
-
-    this.load.setPreloadSprite(this.preloadBar);
-    */
-    
     // Loads game board elements - tilemap and images
     this.load.image('background', 'assets/images/brick_bg.png');
     this.load.tilemap('conjurerLevels', 'levels/levels.json', null, Phaser.Tilemap.TILED_JSON);
@@ -30,8 +19,9 @@ Conjurer.Preload.prototype = {
     this.load.image('spikes', 'assets/images/spikes1.png');
     this.load.image('pause', 'assets/images/pause.png');
     this.load.image('sound', 'assets/images/sound.png');
-    //this.load.image('enemy', 'assets/images/fire.png');
+    this.load.image('menu', 'assets/images/menu.png');
     this.load.image('playButton', 'assets/images/playButton.png');
+    this.load.image('title', 'assets/images/gameTitle.png');
 
     this.load.spritesheet('enemy', 'assets/sprites/flame_animation.png', 30, 32);
     this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', 30, 32);
