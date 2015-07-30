@@ -1,13 +1,16 @@
 var Conjurer = Conjurer || {};
 
 define(['constants'], function (CONSTANTS) {
-Conjurer.MainMenu = function(game) { };
+Conjurer.MainMenu = function(game) { 
+	this.titleBg;
+};
 
 Conjurer.MainMenu.prototype = {
   create: function() {
-    this.stage.setBackgroundColor(0x483F32);
-    this.add.sprite(0, 0, 'background');
-
+    this.stage.setBackgroundColor(0x000000);
+    this.titleBg = this.add.sprite(0, 0, 'background');
+    this.titleBg.alpha = 0;
+   
     this.generateBg();
     this.animateTitle();
 
@@ -17,7 +20,6 @@ Conjurer.MainMenu.prototype = {
   },
   generateBg: function() {
     var gems = this.add.group();
-
     for(var i = 0; i < 50; i+=1){
       var c = gems.create(this.world.randomX, Math.random()*500, 'coin');
       c.alpha = 0;
@@ -34,7 +36,7 @@ Conjurer.MainMenu.prototype = {
     title.anchor.setTo(0.5);
     title.scale.set(1.4);
     title.alpha = 0;
-
+  	
     var wizzard = this.add.sprite(100, 250, 'player');
     wizzard.anchor.setTo(0.5);
     wizzard.scale.setTo(3);
@@ -46,7 +48,8 @@ Conjurer.MainMenu.prototype = {
     var that = this;
     setTimeout(function() {
       wizzard.animations.play('cast');
-      that.add.tween(title).to({alpha: 1}, 3000, "Linear", true, 0, 0);
+      that.add.tween(title).to({alpha: 1}, 2400, "Linear", true, 0, 0);
+      that.add.tween(that.titleBg).to({alpha: 1}, 3200, "Linear", true, 0 , 0);
     }, 4000);
   },
 
