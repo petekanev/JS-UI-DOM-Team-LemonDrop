@@ -27,7 +27,7 @@ Conjurer.Preload.prototype = {
     this.load.spritesheet('player', 'assets/sprites/wizard_animation.png', 30, 32);
 
     // audio to be loaded for different events within the game
-    //this.load.audio('coinCollect', 'assets/audio/coin.mp3');
+    this.load.audio('coinCollect', 'assets/audio/coin.mp3');
     //this.load.audio('playerDied', 'assets/audio/playerDied.mp3');
     this.load.audio('bgMusic', 'assets/audio/bgMusic.mp3');
     //this.load.audio('conjureBox', 'assets/audio/conjureBox.mpc');
