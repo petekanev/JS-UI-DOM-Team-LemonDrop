@@ -28,6 +28,8 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 		this.prevSpeed;    
 		this.spaceBar;
 		this.localScore;
+        this.coinCollect;
+        this.bgMusic;
 	};
 
 	Conjurer.Game.prototype = {
@@ -39,6 +41,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 			this.levelLayer = this.drawLevel();
 			this.spaceBar = this.game.input.keyboard.addKey(32);
 			this.bgSound = this.add.audio('bgMusic');
+            this.coinCollect = this.add.audio('coinCollect');
 
 			this.player = this.createPlayer();
 
@@ -74,8 +77,10 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
             this.soundButton.events.onInputUp.add(function () {
             	if (this.bgSound.mute) {
             		this.bgSound.mute = false;
+                    this.coinCollect.volume = 1;
             	} else {
             		this.bgSound.mute = true;
+                    this.coinCollect.volume = 0;
             	}
             }, this);
 
@@ -394,12 +399,14 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     },
 
     collectCoin: function () {
+        this.coinCollect.play('', 0);
     	this.playerCoinsCollected += 1;
     	uiUpdater.updateScore(this.playerCoinsCollected);
     	this.removeTileFromPosition(this.player);
     },
 
     collectKey: function () {
+        this.coinCollect.play('', 0);
     	this.playerHasKey = true;
     	this.removeTileFromPosition(this.player);
     },
