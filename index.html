@@ -32,34 +32,26 @@
 			}
 
 			#titleBarContainer {
-				position:relative;
 				margin: 0 auto;
 				width: 1024px;
 				height: 46px;
 				text-align: left;
-			}
-
-			#titleBarContainer span {
-				display: inline-block;
-				padding: 3px;
-				font-size: 16px;
 				font-family: ConjurerFont, sans-serif;
 				color: yellow;
+				font-size: 16px;
 			}
 
 			#titleBarContainer #gameHeader {
-				padding: 35px 20px;
 				font-size: 36px;
+				text-align: left;
+				margin-right: 70px;
 			}
 
-			#titleBarContainer #gameStats {
+			#titleBarContainer div, #gameHeader, #titleBarContainer svg {
 				display: inline-block;
-				padding: 30px 0px 0px 150px;
-			}
-
-			#titleBarContainer #gameStats div {
-				display: inline-block;
-				width: 180px;
+				vertical-align: middle;
+				padding-top: 5px;
+				padding: 0;
 			}
 
 			ellipse, circle, rect, line, path {
@@ -68,22 +60,22 @@
 			}
 
 			#svgClock {
-				padding-left: 785px;
-				position: absolute;
-				height: 96px;
 				stroke-width: 2px;
+				width: 27px;
+				height: 96px;
+				margin: 0 20px 0 50px;
 			}
 
 			#svgCoin {
-				padding-left: 600px;
-				position: absolute;
-				height: 96px;
 				stroke-width: 2px;
+				width: 30px;
+				height: 96px;
+				margin: 0 20px 0 50px;
 			}
 
 			#svgHeart {
-				padding-left: 440px;
-				position: absolute;
+				width: 90px;
+				height: 96px;
 				transform: scale(.45);
 				top: -7px;
 				stroke-width: 5px;
@@ -103,39 +95,35 @@
 	</head>
 	<body>
 		<div id="titleBarContainer">
-			<svg id="svgClock">
-				<circle cx="13" cy="53" r="12"></circle>
-			    <circle cx="13" cy="53" r="1"></circle>
-				<rect x="11" y="37" width="4" height="4"></rect>
-				<rect x="9" y="35" width="8" height="2"></rect>
-				<line x1="13" y1="51" x2="13" y2="45"/>
-				<line x1="11" y1="54" x2="5" y2="59"/>
-			</svg>
-
-			<svg id="svgCoin">
-				<ellipse cx="15px" cy="51px" rx="10px" ry="15px"/>
-				<path d="M10 49 L16 43 L16 60"/>
-			</svg>
-
+			<span id="gameHeader">Conjurer</span>
 			<svg id="svgHeart">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
 					d="M45.137,23.041c4.912-24.596,40.457-27.775,42.128-0.435c1.398,22.88-21.333,40.717-42.128,50.522 M45.137,23.041
 					C40.225-1.555,5.057-4.734,3.387,22.606c-1.398,22.88,20.955,40.717,41.75,50.522"/> 
 			</svg>
-		    <span id="gameHeader" x="2%" y="60%">Conjurer</span>
-		    <div id="gameStats">
-		    	<div>
-		    		<span x="50%" y="60%">lifes:</span>
-					<span id="lifesContainer" x="57%" y="60%">10</span>
-		    	</div>
-				<div>
-					<span x="65%" y="60%">score: </span>
-					<span id="scoreContainer" x="73%" y="60%">0</span>
-				</div>
-				<div>
-					<span x="82%" y="60%">time: </span>
-					<span id="timeContainer" x="88%" y="60%">00:00:00</span>
-				</div>
+			<div>
+	    		<span>lifes:</span>
+				<span id="lifesContainer">10</span>
+	    	</div>
+			<svg id="svgCoin">
+				<ellipse cx="15px" cy="43px" rx="10px" ry="15px"/>
+				<path d="M15 35 L15 52"/>
+			</svg>
+			<div>
+				<span>score: </span>
+				<span id="scoreContainer">0</span>
+			</div>
+			<svg id="svgClock">
+				<circle cx="13" cy="46" r="12"></circle>
+			    <circle cx="13" cy="46" r="1"></circle>
+				<rect x="11" y="30" width="4" height="4"></rect>
+				<rect x="9" y="28" width="8" height="2"></rect>
+				<line x1="13" y1="44" x2="13" y2="38"/>
+				<line x1="11" y1="47" x2="5" y2="52"/>
+			</svg>
+			<div>
+				<span>time: </span>
+				<span id="timeContainer">00:00:00</span>
 			</div>
 		</div>
 		<div id="credits">
