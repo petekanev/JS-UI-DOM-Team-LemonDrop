@@ -9,18 +9,20 @@
 		<script type="text/javascript" src="scripts/game.js"></script>
 		<script type="text/javascript" src="scripts/howTo.js"></script>		
 		<script type="text/javascript" src="scripts/gameOver.js"></script>
-		<script type="text/javascript" src="scripts/index.js"></script> -->
-		<link href='http://fonts.googleapis.com/css?family=Syncopate' rel='stylesheet' type='text/css'>
+		<script type="text/javascript" src="scripts/index.js"></script> 
+		<link href='http://fonts.googleapis.com/css?family=Syncopate' rel='stylesheet' type='text/css'>-->
 		<style type="text/css">
 			@font-face {
 				font-family: ConjurerFont;
 				
-				src: url('assets/htmlSources/ConjurerFont.ttf');
+				src: url('assets/htmlSources/Syncopate-Bold.ttf');
 			}
+
 			body, canvas, #svgContainer {
 				padding: 0;
 				margin: 0 auto;
 			}
+
 			body {
 				background-image: url("assets/images/walltile.png");
     			background-repeat: repeat;
@@ -40,22 +42,24 @@
 			#titleBarContainer span {
 				display: inline-block;
 				padding: 3px;
-				font-size: 12px;
+				font-size: 16px;
 				font-family: ConjurerFont, sans-serif;
 				color: yellow;
 			}
+
 			#titleBarContainer #gameHeader {
 				padding: 35px 20px;
-				font-size: 28px;
+				font-size: 36px;
 			}
+
 			#titleBarContainer #gameStats {
 				display: inline-block;
-				padding: 30px 0px 0px 60px;
+				padding: 30px 0px 0px 150px;
 			}
 
 			#titleBarContainer #gameStats div {
 				display: inline-block;
-				width: 170px;
+				width: 180px;
 			}
 
 			ellipse, circle, rect, line, path {
@@ -64,20 +68,25 @@
 			}
 
 			#svgClock {
-				padding-left: 820px;
+				padding-left: 785px;
 				position: absolute;
 				height: 96px;
+				stroke-width: 2px;
 			}
+
 			#svgCoin {
-				padding-left: 640px;
+				padding-left: 600px;
 				position: absolute;
 				height: 96px;
+				stroke-width: 2px;
 			}
+
 			#svgHeart {
-				padding-left: 520px;
+				padding-left: 440px;
 				position: absolute;
 				transform: scale(.45);
 				top: -7px;
+				stroke-width: 5px;
 			}
 
 			#credits {
@@ -87,7 +96,7 @@
 				height: 38px;
 				top: 580px;
 				font-size: 12px;
-				font-family: 'Syncopate', sans-serif;
+				font-family: ConjurerFont, sans-serif;
 				color: yellow;
 			}
 		</style>
@@ -109,11 +118,11 @@
 			</svg>
 
 			<svg id="svgHeart">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"
 					d="M45.137,23.041c4.912-24.596,40.457-27.775,42.128-0.435c1.398,22.88-21.333,40.717-42.128,50.522 M45.137,23.041
 					C40.225-1.555,5.057-4.734,3.387,22.606c-1.398,22.88,20.955,40.717,41.75,50.522"/> 
 			</svg>
-		    <span id="gameHeader" x="2%" y="60%">Conjurer Game</span>
+		    <span id="gameHeader" x="2%" y="60%">Conjurer</span>
 		    <div id="gameStats">
 		    	<div>
 		    		<span x="50%" y="60%">lifes:</span>
