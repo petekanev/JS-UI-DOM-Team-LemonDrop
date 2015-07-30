@@ -1,0 +1,33 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mocha Tests</title>
+  <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+  <style>
+    canvas{
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="mocha"></div>
+  <script src="../node_modules/mocha/mocha.js"></script>
+  <script src="../node_modules/chai/chai.js"></script>
+      <script type="text/javascript" src="../scripts/phaser.min.js"></script>
+  <script src="../scripts/require.js" data-main="../scripts/index"></script>
+  <script>
+    mocha.setup('bdd')
+    mocha.reporter('html');
+  </script>
+  <!-- Tests -->
+  <!-- <script src="../scripts/game.js"></script> -->
+  <script src="tests.js"></script>
+
+  <script>
+    // Only tests run in real browser, injected script run if options.run == true
+    if (navigator.userAgent.indexOf('PhantomJS') < 0) {
+      mocha.run();
+    }
+  </script>
+</body>
+</html>
