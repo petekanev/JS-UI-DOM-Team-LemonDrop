@@ -306,6 +306,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
         if (this.playerSpeed > 0) {
             this.player.frame = 5;
+		} else if (this.playerSpeed < 0) {
             this.player.frame = 1;
         }
 
