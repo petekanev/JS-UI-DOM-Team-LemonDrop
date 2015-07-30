@@ -327,7 +327,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     	if (tileAbovePlayer && (tileAbovePlayer.index === tiles.coin || tileAbovePlayer.index === tiles.key)) {
     		return true;
     	}
-    	if (tileDiagonalToPlayer && (tileDiagonalToPlayer.index === tiles.coin || tileDiagonalToPlayer.index === tiles.key)) {
+    	if (tileDiagonalToPlayer && (tileDiagonalToPlayer.index === tiles.coin || tileDiagonalToPlayer.index === tiles.key || tileDiagonalToPlayer.index === tiles.door)) {
     		return true;
     	}
     	if (this.playerAirborne) {
