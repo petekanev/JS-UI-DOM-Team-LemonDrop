@@ -25,7 +25,6 @@ Conjurer.MainMenu.prototype = {
     }
     var that = this;
     gems.forEach(function (child) {
-      console.log(child);
       var tween = that.add.tween(child).to({alpha: 1}, 1000+that.rnd.integerInRange(0, 2000), "Linear", true, 0, -1);
       tween.yoyo(true, 1000);
     }, this)

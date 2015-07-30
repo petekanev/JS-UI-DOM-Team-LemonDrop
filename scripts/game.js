@@ -22,6 +22,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         this.inputController;
         this.pausedText;
         this.pausedButton;
+        this.soundButton;
         this.startTime;
         this.prevSpeed;    
         this.spaceBar;
@@ -34,21 +35,9 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
             this.playerCoinsCollected = 0;
             this.playerPlacedCrates = 0;
             this.playerLives = CONSTANTS.PLAYER_STARTING_LIFE_POINTS;
-
-            this.levelMaps = this.add.tilemap('conjurerLevels');
-            this.levelMaps.addTilesetImage('wall');
-            this.levelMaps.addTilesetImage('crate');
-            this.levelMaps.addTilesetImage('spikes');
-            // this.levelMaps.addTilesetImage('coin');
-            this.levelMaps.addTilesetImage('coin');
-            this.levelMaps.addTilesetImage('key');
-            this.levelMaps.addTilesetImage('door');
-
-            this.levelMaps.setCollision([1, 2], true, 'level0');
-            this.levelMaps.setCollision([1, 2], true, 'level1');
-            this.levelMaps.setCollision([1, 2], true, 'level2');
             this.levelLayer = this.drawLevel();
             this.spaceBar = this.game.input.keyboard.addKey(32);
+            this.bgSound = this.add.audio('bgMusic');
 
             this.player = this.createPlayer();
 
@@ -69,6 +58,16 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
                 this.pausedText.anchor.setTo(0.5);
             }, this);
 
+            this.soundButton.inputEnabled = true;
+            this.soundButton.events.onInputUp.add(function () {
+                if (this.bgSound.mute) {
+                    this.bgSound.mute = false;
+                } else {
+                    this.bgSound.mute = true;
+                }
+            }, this);
+
+            this.bgSound.play('', 0, 1, true);
             this.startTime = new Date();
             uiUpdater.updateLives(this.playerLives);
             uiUpdater.updateScore(this.playerCoinsCollected);
@@ -122,7 +121,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
     boxOverlap: function(a, b) {
         var a = this.enemy.getBounds();
-        var b = new Phaser.Rectangle(this.crate.x-16, this.crate.y-16, 24, 24);
+        var b = new Phaser.Rectangle(this.crate.x-16, this.crate.y-16, 16, 16);
 
         return Phaser.Rectangle.intersects(b, a);
     },
@@ -134,19 +133,33 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
     drawLevel: function () {
         this.bg = this.add.sprite(0, 0, 'background');
-        var levelLayer = this.levelMaps.createLayer('level' + (this.levelCounter%CONSTANTS.AVAILABLE_LEVELS).toString());
-        // resets crate placed by the conjurer
-        this.crate = null;
+
+        if (this.levelCounter % CONSTANTS.AVAILABLE_LEVELS === 0) {
+            this.levelMaps = this.add.tilemap('conjurerLevels');
+            this.levelMaps.addTilesetImage('wall');
+            this.levelMaps.addTilesetImage('crate');
+            this.levelMaps.addTilesetImage('spikes');
+            this.levelMaps.addTilesetImage('coin');
+            this.levelMaps.addTilesetImage('key');
+            this.levelMaps.addTilesetImage('door');
+
+            this.levelMaps.setCollision([1, 2], true, 'level0');
+            this.levelMaps.setCollision([1, 2], true, 'level1');
+            this.levelMaps.setCollision([1, 2], true, 'level2');    
+        }
+
+        var levelLayer = this.levelMaps.createLayer('level' + (this.levelCounter % CONSTANTS.AVAILABLE_LEVELS).toString());
 
         // creates enemy flames from an array
-        if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS]) {
+        if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter % CONSTANTS.AVAILABLE_LEVELS]) {
             this.enemy = this.createEnemy(this);
         }
 
         // applies a black mask over the game stage
         this.setLighting();
-        // redraw pause button sprite, as it is hidden because of the freshly drawn layers of bg and tilemap
+        // redraw pause and sound buttons, as they become hidden when the stage is redrawn
         this.pauseButton = this.add.sprite(8, 8, 'pause');
+        this.soundButton = this.add.sprite(48, 8, 'sound');
 
         return levelLayer;
     },
@@ -175,10 +188,10 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     },
 
     createEnemy: function () {
-        var enemy = this.add.sprite(CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS].x, CONSTANTS.ENEMY_MOVE_TO[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS].y, 'enemy');
+        var enemy = this.add.sprite(CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter % CONSTANTS.AVAILABLE_LEVELS].x, CONSTANTS.ENEMY_MOVE_TO[this.levelCounter % CONSTANTS.AVAILABLE_LEVELS].y, 'enemy');
         enemy.anchor.setTo(0.5, 0.5);
         this.physics.enable(enemy, Phaser.Physics.ARCADE);
-        this.add.tween(enemy).to({x: CONSTANTS.ENEMY_MOVE_TO[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS].x}, 3000, Phaser.Easing.Linear.None, true, 0, -1, true);
+        this.add.tween(enemy).to({x: CONSTANTS.ENEMY_MOVE_TO[this.levelCounter % CONSTANTS.AVAILABLE_LEVELS].x}, 3000, Phaser.Easing.Linear.None, true, 0, -1, true);
 
         return enemy;
     },
@@ -306,7 +319,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
         if (this.playerSpeed > 0) {
             this.player.frame = 5;
-		} else if (this.playerSpeed < 0) {
+        } else if (this.playerSpeed < 0) {
             this.player.frame = 1;
         }
 
@@ -375,6 +388,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     tryEnterDoor: function () {
         if (this.playerHasKey) {
             this.levelCounter += 1;
+            this.removeTileFromPosition(this.crate);
             this.levelLayer.destroy();
             // generates a level depending on the level indicator, redraws background, tilemap and light
             this.levelLayer = this.drawLevel();
@@ -382,15 +396,15 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
             this.player.destroy();
             this.player = this.createPlayer(this);
             this.playerHasKey = false;
-            }
-        },
+        }
+    },
 
-        updateShadowTexture: function (shadowTexture, player) {
-            var gradient,
-            radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
+    updateShadowTexture: function (shadowTexture, player) {
+        var gradient,
+        radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
 
-            shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
-            shadowTexture.context.fillRect(0, 0, CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
+        shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
+        shadowTexture.context.fillRect(0, 0, CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
 
         // Draw circle of light with a soft edge
         gradient = shadowTexture.context.createRadialGradient(

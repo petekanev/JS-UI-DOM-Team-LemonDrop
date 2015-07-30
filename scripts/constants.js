@@ -15,8 +15,8 @@ define(function () {
         PLAYER_VERTICAL_STARTING_POSITION: 460,
         PLAYER_STARTING_LIFE_POINTS: 10,
         AVAILABLE_LEVELS: 3,
-        ENEMY_MOVE_FROM: [{x: 275, y: 242}, {x: 530, y: 400}],
-        ENEMY_MOVE_TO: [{x: 460, y: 242}, {x: 685, y: 400}],
+        ENEMY_MOVE_FROM: [{x: 275, y: 242}, {x: 470, y: 465}],
+        ENEMY_MOVE_TO: [{x: 460, y: 242}, {x: 740, y: 465}],
         PAUSED_TEXT: 'Click to resume game!',
         PAUSED_TEXT_PLAYER_DIED: 'Oh no, you lost a life point!\nClick to continue!\nLives left: ',
         GAME_OVER: 'lel, you just died...' 
