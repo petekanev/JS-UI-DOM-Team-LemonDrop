@@ -30,7 +30,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
     Conjurer.Game.prototype = {
         create: function () {
-            this.levelCounter = 1;
+            this.levelCounter = 0;
             this.playerCoinsCollected = 0;
             this.playerPlacedCrates = 0;
             this.playerLives = CONSTANTS.PLAYER_STARTING_LIFE_POINTS;
@@ -39,13 +39,14 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
             this.levelMaps.addTilesetImage('wall');
             this.levelMaps.addTilesetImage('crate');
             this.levelMaps.addTilesetImage('spikes');
+            // this.levelMaps.addTilesetImage('coin');
             this.levelMaps.addTilesetImage('coin');
             this.levelMaps.addTilesetImage('key');
             this.levelMaps.addTilesetImage('door');
 
+            this.levelMaps.setCollision([1, 2], true, 'level0');
             this.levelMaps.setCollision([1, 2], true, 'level1');
             this.levelMaps.setCollision([1, 2], true, 'level2');
-            this.levelMaps.setCollision([1, 2], true, 'level3');
             this.levelLayer = this.drawLevel();
             this.spaceBar = this.game.input.keyboard.addKey(32);
 
@@ -121,7 +122,7 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
     boxOverlap: function(a, b) {
         var a = this.enemy.getBounds();
-        var b = new Phaser.Rectangle(this.crate.x-16, this.crate.y, 24, 32);
+        var b = new Phaser.Rectangle(this.crate.x-16, this.crate.y-16, 24, 24);
 
         return Phaser.Rectangle.intersects(b, a);
     },
@@ -133,12 +134,12 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
     drawLevel: function () {
         this.bg = this.add.sprite(0, 0, 'background');
-        var levelLayer = this.levelMaps.createLayer('level' + this.levelCounter.toString());
+        var levelLayer = this.levelMaps.createLayer('level' + (this.levelCounter%CONSTANTS.AVAILABLE_LEVELS).toString());
         // resets crate placed by the conjurer
         this.crate = null;
 
         // creates enemy flames from an array
-        if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter - 1]) {
+        if (CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS]) {
             this.enemy = this.createEnemy(this);
         }
 
@@ -174,10 +175,10 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     },
 
     createEnemy: function () {
-        var enemy = this.add.sprite(CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter - 1].x, CONSTANTS.ENEMY_MOVE_TO[this.levelCounter - 1].y, 'enemy');
+        var enemy = this.add.sprite(CONSTANTS.ENEMY_MOVE_FROM[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS].x, CONSTANTS.ENEMY_MOVE_TO[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS].y, 'enemy');
         enemy.anchor.setTo(0.5, 0.5);
         this.physics.enable(enemy, Phaser.Physics.ARCADE);
-        this.add.tween(enemy).to({x: CONSTANTS.ENEMY_MOVE_TO[this.levelCounter - 1].x}, 3000, Phaser.Easing.Linear.None, true, 0, -1, true);
+        this.add.tween(enemy).to({x: CONSTANTS.ENEMY_MOVE_TO[this.levelCounter%CONSTANTS.AVAILABLE_LEVELS].x}, 3000, Phaser.Easing.Linear.None, true, 0, -1, true);
 
         return enemy;
     },
@@ -305,7 +306,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
         if (this.playerSpeed > 0) {
             this.player.frame = 5;
-        } else if (this.playerSpeed < 0) {
             this.player.frame = 1;
         }
 
@@ -341,7 +341,6 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
         this.pausedText.anchor.setTo(0.5);
         this.state.start('Game');
     },
-
     getHighScore: function() {
         this.localScore = localStorage.getItem('ConjurerScore');
         var currentHighScore; 
@@ -375,24 +374,22 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
     tryEnterDoor: function () {
         if (this.playerHasKey) {
             this.levelCounter += 1;
-            if (this.levelCounter <= CONSTANTS.AVAILABLE_LEVELS) {
-                this.levelLayer.destroy();
-                // generates a level depending on the level indicator, redraws background, tilemap and light
-                this.levelLayer = this.drawLevel();
-                // resets player and re-generates sprites to reduce background not-updating bugging
-                this.player.destroy();
-                this.player = this.createPlayer(this);
-                this.playerHasKey = false;
+            this.levelLayer.destroy();
+            // generates a level depending on the level indicator, redraws background, tilemap and light
+            this.levelLayer = this.drawLevel();
+            // resets player and re-generates sprites to reduce background not-updating bugging
+            this.player.destroy();
+            this.player = this.createPlayer(this);
+            this.playerHasKey = false;
             }
-        }
-    },
+        },
 
-    updateShadowTexture: function (shadowTexture, player) {
-        var gradient,
-        radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
+        updateShadowTexture: function (shadowTexture, player) {
+            var gradient,
+            radius = CONSTANTS.SHADOW_RADIUS + this.rnd.integerInRange(1, 10);
 
-        shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
-        shadowTexture.context.fillRect(0, 0, CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
+            shadowTexture.context.fillStyle = 'rgba(10, 10, 10, 1)';
+            shadowTexture.context.fillRect(0, 0, CONSTANTS.GAME_WIDTH, CONSTANTS.GAME_HEIGHT);
 
         // Draw circle of light with a soft edge
         gradient = shadowTexture.context.createRadialGradient(

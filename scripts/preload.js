@@ -22,7 +22,8 @@ Conjurer.Preload.prototype = {
     this.load.tilemap('conjurerLevels', 'levels/levels.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('wall', 'assets/images/walltile.png');
     this.load.image('crate', 'assets/images/crate.png');
-    this.load.image('coin', 'assets/images/coin.png');
+    // this.load.image('coin', 'assets/images/coin.png');
+    this.load.image('coin', 'assets/images/gem.png');
     this.load.image('key', 'assets/images/key.png');
     this.load.image('door', 'assets/images/door.png');
     this.load.image('spikes', 'assets/images/spikes1.png');
