@@ -372,12 +372,13 @@ define(['constants', 'uiUpdater', 'tiles'], function (CONSTANTS, uiUpdater, tile
 
     gameOver: function () {
     	this.game.paused = true;
+        this.bgMusic.destroy();
 
     	this.getHighScore();
 
     	this.pausedText = this.add.text(this.world.centerX, this.world.centerY, CONSTANTS.GAME_OVER, { font: "25px Impact", fill: "#f31", align: "center" });
     	this.pausedText.anchor.setTo(0.5);
-    	this.state.start('Game');
+    	this.state.start('GameOver');
     },
     getHighScore: function() {
     	this.localScore = localStorage.getItem('ConjurerScore');
