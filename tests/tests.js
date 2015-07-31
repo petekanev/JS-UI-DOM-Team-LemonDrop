@@ -6,11 +6,14 @@ describe('Test for game', function() {
 	beforeEach(function(done) {
 		require(['../scripts/phaser.min','../scripts/game'], function(game) {
 			Game = Conjurer.Game;
+			MainMenu = Conjurer.MainMenu;
 			done();
 		});
 	});
 
 	it('expect Conjurer to exist', function() {
+		console.log(Conjurer);
+		console.log('---');
 		expect(Conjurer).to.exist;
 	});
 
@@ -19,6 +22,7 @@ describe('Test for game', function() {
 	});
 
 	it('expect new Game() to be an object', function(){
+		console.log(new Game());
 		expect(new Game()).to.an('object');
 	});
 
@@ -142,10 +146,40 @@ describe('Test for game', function() {
 		expect(game.placeTileOnPosition).to.exist;
 		expect(game.placeTileOnPosition).to.be.a('function');
 	});
+	it('expect new Game().playerSpeed to be a Number (100)', function(){
+		var game = new Game();
+		expect(game.playerSpeed).to.be.a('number');
+	});
+	it('expect new Game().playerHasKey to initially be false', function(){
+		var game = new Game();
+		expect(game.playerHasKey).to.eql(false);
+	});
+	it('expect new Game() to have property \'crate\' that is initially null', function(){
+		var game = new Game();
+		expect(game).to.have.property('crate');
+		expect(game.crate).to.eql(null);
+	});
 
-
-
-
+	it('expect new MainMenu().generateBg to exist and to be a function', function(){
+		var game = new MainMenu();
+		expect(game.generateBg).to.exist;
+		expect(game.generateBg).to.be.a('function');
+	});
+	it('expect new MainMenu().animateTitle to exist and to be a function', function(){
+		var game = new MainMenu();
+		expect(game.animateTitle).to.exist;
+		expect(game.animateTitle).to.be.a('function');
+	});
+	it('expect new MainMenu().startGame to exist and to be a function', function(){
+		var game = new MainMenu();
+		expect(game.startGame).to.exist;
+		expect(game.startGame).to.be.a('function');
+	});
+	it('expect new MainMenu().startHowTo to exist and to be a function', function(){
+		var game = new MainMenu();
+		expect(game.startHowTo).to.exist;
+		expect(game.startHowTo).to.be.a('function');
+	});
 
 
 });

@@ -1,16 +1,16 @@
 var Conjurer = Conjurer || {};
 
 define(['constants'], function (CONSTANTS) {
-Conjurer.MainMenu = function(game) { 
-	this.titleBg;
-};
+  Conjurer.MainMenu = function(game) { 
+   this.titleBg;
+ };
 
-Conjurer.MainMenu.prototype = {
+ Conjurer.MainMenu.prototype = {
   create: function() {
     this.stage.setBackgroundColor(0x000000);
     this.titleBg = this.add.sprite(0, 0, 'background');
     this.titleBg.alpha = 0;
-   
+    
     this.generateBg();
     this.animateTitle();
 
@@ -36,7 +36,7 @@ Conjurer.MainMenu.prototype = {
     title.anchor.setTo(0.5);
     title.scale.set(1.4);
     title.alpha = 0;
-  	
+    
     var wizzard = this.add.sprite(100, 250, 'player');
     wizzard.anchor.setTo(0.5);
     wizzard.scale.setTo(3);
@@ -55,7 +55,6 @@ Conjurer.MainMenu.prototype = {
 
   startGame: function (pointer) {
     this.state.start('Game');
-
   },
   startHowTo: function (pointer) {
     this.state.start('HowTo');

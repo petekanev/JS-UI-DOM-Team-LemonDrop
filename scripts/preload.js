@@ -1,13 +1,11 @@
 var Conjurer = Conjurer || {};
 
 define(function () {
-Conjurer.Preload = function (game) {
-  this.splash;
-  this.preloadBar;
-};
+  Conjurer.Preload = function (game) {
+  };
 
-Conjurer.Preload.prototype = {
-  preload: function () {
+  Conjurer.Preload.prototype = {
+    preload: function () {
     // Loads game board elements - tilemap and images
     this.load.image('background', 'assets/images/brick_bg.png');
     this.load.tilemap('conjurerLevels', 'levels/levels.json', null, Phaser.Tilemap.TILED_JSON);
